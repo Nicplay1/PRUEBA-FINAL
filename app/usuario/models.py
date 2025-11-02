@@ -17,7 +17,7 @@ class Rol(models.Model):
     nombre_rol = models.CharField(max_length=50)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Rol'
 
     def __str__(self):
@@ -44,7 +44,7 @@ class Usuario(models.Model):
     
     class Meta:
         db_table = "Usuario"   # <- Esto fuerza a Django a usar esa tabla
-        managed = False  # <- Esto le dice a Django que NO maneje migraciones
+        managed = True  # <- Esto le dice a Django que NO maneje migraciones
         
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"    
@@ -93,7 +93,7 @@ class ZonaComun(models.Model):
 
     class Meta:
         # Esto le indica a Django que la tabla ya existe y no debe crearla
-        managed = False
+        managed = True
         
         # Le dice a Django el nombre exacto de la tabla en la base de datos
         db_table = 'Zona_comun'
@@ -125,7 +125,7 @@ class Reserva(models.Model):
     cod_zona = models.ForeignKey(ZonaComun, on_delete=models.CASCADE, db_column='cod_zona')
 
     class Meta:
-        managed = False   # ⚠️ Recuerda que Django NO manejará migraciones aquí
+        managed = True   # ⚠️ Recuerda que Django NO manejará migraciones aquí
         db_table = 'Reserva'
 
     def __str__(self):
@@ -140,7 +140,7 @@ class DetalleResidente(models.Model):
     cod_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Detalle_residente'
 
     def __str__(self):
@@ -159,7 +159,7 @@ class Noticias(models.Model):
     )
 
     class Meta:
-        managed = False   # porque la tabla ya existe en la BD
+        managed = True   # porque la tabla ya existe en la BD
         db_table = 'Noticias'
 
     def __str__(self):
@@ -184,7 +184,7 @@ class VehiculoResidente(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Vehiculo_residente'
 
     def __str__(self):
@@ -207,7 +207,7 @@ class TipoArchivo(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'TipoArchivo'
 
     def __str__(self):
@@ -234,7 +234,7 @@ class ArchivoVehiculo(models.Model):
     fechaVencimiento = models.DateField(null=True, blank=True, db_column='fechaVencimiento')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'ArchivoVehiculo'
 
     def __str__(self):
@@ -248,7 +248,7 @@ class Parqueadero(models.Model):
     estado = models.BooleanField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Parqueadero'
 
     def __str__(self):
@@ -264,7 +264,7 @@ class Sorteo(models.Model):
     estado = models.BooleanField(default=False, db_column='estado')  # Nuevo campo
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Sorteo'
 
     def __str__(self):
@@ -281,7 +281,7 @@ class GanadorSorteo(models.Model):
     fecha_ganado = models.DateTimeField(auto_now_add=True, db_column='fecha_ganado')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Ganador_sorteo'
 
     def __str__(self):
@@ -305,7 +305,7 @@ class Visitante(models.Model):
     apartamento = models.CharField(max_length=10)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'visitante'
 
     def __str__(self):
@@ -343,7 +343,7 @@ class DetallesParqueadero(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'detalles_parqueadero'
 
     def __str__(self):
@@ -368,7 +368,7 @@ class RegistroCorrespondencia(models.Model):
 
     class Meta:
         db_table = 'RegistroCorrespondencia'
-        managed = False  # Django no intentará crear ni modificar la tabla
+        managed = True # Django no intentará crear ni modificar la tabla
 
     def __str__(self):
         return f"{self.tipo} - {self.descripcion[:20]}"
@@ -398,7 +398,7 @@ class EntregaCorrespondencia(models.Model):
 
     class Meta:
         db_table = 'EntregaCorrespondecia'
-        managed = False  # Django no intentará crear o modificar la tabla
+        managed = True  # Django no intentará crear o modificar la tabla
 
     def __str__(self):
         return f"Entrega {self.id_Entrega} - {self.idDetalles_residente}"
@@ -421,7 +421,7 @@ class PagosReserva(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'pagos_reserva'
 
     def __str__(self):
@@ -467,7 +467,7 @@ class Novedades(models.Model):
     )
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'novedades'
 
     def __str__(self):
