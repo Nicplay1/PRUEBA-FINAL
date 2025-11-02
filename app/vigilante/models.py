@@ -3,7 +3,7 @@ from usuario.models import *
 
 # Create your models here.
 class Paquete(models.Model):
-    id_paquete = models.AutoField(db_column='ID_paquete', primary_key=True)
+    id_paquete = models.AutoField(db_column='id_paquete', primary_key=True)
     apartamento = models.IntegerField(db_column='apartamento')
     torre = models.IntegerField(db_column='torre')
     fecha_recepcion = models.DateTimeField(db_column='fecha_recepcion')
@@ -30,5 +30,5 @@ class Paquete(models.Model):
     foto_cedula = models.ImageField(upload_to='cedulas_entrega/', null=True, blank=True, db_column='foto_cedula')
 
     class Meta:
-        db_table = "Paquete"
+        db_table = "paquete"
         managed = True

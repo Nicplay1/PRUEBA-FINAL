@@ -18,7 +18,7 @@ class Rol(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Rol"
+        db_table = "rol"
 
     def __str__(self):
         return self.nombre_rol
@@ -38,14 +38,14 @@ class Usuario(models.Model):
     celular = models.CharField(max_length=13)
     estado = models.CharField(max_length=10, default='Activo')
     contraseña = models.CharField(max_length=250, null=True, blank=True)
-    id_rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='ID_rol', default=1)
+    id_rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='id_rol', default=1)
     reset_token = models.CharField(max_length=100, null=True, blank=True)
     reset_token_expira = models.DateTimeField(null=True, blank=True)
     
     class Meta:
                   # <- Esto fuerza a Django a usar esa tabla
         managed = True 
-        db_table = "Usuario"# <- Esto le dice a Django que NO maneje migraciones
+        db_table = "usuario"# <- Esto le dice a Django que NO maneje migraciones
         
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"    
@@ -97,7 +97,7 @@ class ZonaComun(models.Model):
         managed = True
         
         # Le dice a Django el nombre exacto de la tabla en la base de datos
-        db_table = "Zona_comun"
+        db_table = "zona_comun"
 
     def __str__(self):
         return self.nombre_zona
@@ -127,7 +127,7 @@ class Reserva(models.Model):
 
     class Meta:
         managed = True   # ⚠️ Recuerda que Django NO manejará migraciones aquí
-        db_table = "Reserva"
+        db_table = "reserva"
 
     def __str__(self):
         return f"Reserva {self.id_reserva} - {self.cod_usuario}"
@@ -142,7 +142,7 @@ class DetalleResidente(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Detalle_residente"
+        db_table = "detalle_residente"
 
     def __str__(self):
         return f"Residente {self.cod_usuario} - Torre {self.torre}, Apto {self.apartamento}"
@@ -161,7 +161,7 @@ class Noticias(models.Model):
 
     class Meta:
         managed = True   # porque la tabla ya existe en la BD
-        db_table = "Noticias"
+        db_table = "noticias"
 
     def __str__(self):
         return f"Noticia {self.id_noticia}: {self.descripcion[:30]}..."
@@ -186,7 +186,7 @@ class VehiculoResidente(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Vehiculo_residente"
+        db_table = "vehiculo_residente"
 
     def __str__(self):
         return f"{self.placa} - {self.tipo_vehiculo}"
@@ -209,7 +209,7 @@ class TipoArchivo(models.Model):
 
     class Meta:
         managed = True
-        db_table = "TipoArchivo"
+        db_table = "tipoarchivo"
 
     def __str__(self):
         return self.tipo_documento
@@ -218,12 +218,12 @@ class TipoArchivo(models.Model):
 class ArchivoVehiculo(models.Model):
     idArchivo = models.AutoField(primary_key=True, db_column='idArchivo')
     idVehiculo = models.ForeignKey(
-        'VehiculoResidente',
+        'vehiculoresidente',
         on_delete=models.CASCADE,
         db_column='idVehiculo'
     )
     idTipoArchivo = models.ForeignKey(
-        'TipoArchivo',
+        'tipoarchivo',
         on_delete=models.CASCADE,
         db_column='idTipoArchivo'
     )
@@ -236,7 +236,7 @@ class ArchivoVehiculo(models.Model):
 
     class Meta:
         managed = True
-        db_table = "ArchivoVehiculo"
+        db_table = "archivo_vehiculo"
 
     def __str__(self):
         return f"{self.idVehiculo.placa} - {self.idTipoArchivo.tipo_documento}"
@@ -250,14 +250,14 @@ class Parqueadero(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Parqueadero"
+        db_table = "parqueadero"
 
     def __str__(self):
         return f"Parqueadero {self.numero_parqueadero}"
 
 
 class Sorteo(models.Model):
-    id_sorteo = models.AutoField(primary_key=True, db_column='ID_sorteo')
+    id_sorteo = models.AutoField(primary_key=True, db_column='id_sorteo')
     fecha_creado = models.DateTimeField(auto_now_add=True, db_column='fecha_creado')
     tipo_residente_propietario = models.BooleanField(null=True, blank=True)
     fecha_inicio = models.DateField()
@@ -266,7 +266,7 @@ class Sorteo(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Sorteo"
+        db_table = "sorteo"
 
     def __str__(self):
         tipo = "Propietarios" if self.tipo_residente_propietario else "Arrendatarios" if self.tipo_residente_propietario == False else "Todos"
@@ -283,7 +283,7 @@ class GanadorSorteo(models.Model):
 
     class Meta:
         managed = True
-        db_table = "Ganador_sorteo"
+        db_table = "ganador_sorteo"
 
     def __str__(self):
         return f"Ganador: {self.id_detalle_residente} - Parqueadero {self.id_parqueadero.numero_parqueadero}"
@@ -320,14 +320,14 @@ class DetallesParqueadero(models.Model):
         choices=[('Visitante', 'Visitante'), ('Residente', 'Residente')]
     )
     id_visitante = models.ForeignKey(
-        'Visitante',
+        'visitante',
         models.DO_NOTHING,
         db_column='id_visitante',
         blank=True,
         null=True
     )
     id_vehiculo_residente = models.ForeignKey(
-        'VehiculoResidente',
+        'vehiculoResidente',
         models.DO_NOTHING,
         db_column='id_vehiculo_residente',
         blank=True,
@@ -338,9 +338,9 @@ class DetallesParqueadero(models.Model):
     hora_salida = models.TimeField(blank=True, null=True)
     pago = models.FloatField(blank=True, null=True)  # nuevo campo para el pago
     id_parqueadero = models.ForeignKey(
-        'Parqueadero',
+        'parqueadero',
         models.DO_NOTHING,
-        db_column='ID_parqueadero'
+        db_column='id_parqueadero'
     )
 
     class Meta:
@@ -369,7 +369,7 @@ class RegistroCorrespondencia(models.Model):
 
     class Meta:
         managed = True # Django no intentará crear ni modificar la tabla
-        db_table = "RegistroCorrespondencia"
+        db_table = "registrocorrespondencia"
 
     def __str__(self):
         return f"{self.tipo} - {self.descripcion[:20]}"
@@ -381,25 +381,25 @@ class EntregaCorrespondencia(models.Model):
     idUsuario = models.ForeignKey(
         Usuario,
         on_delete=models.DO_NOTHING,
-        db_column='idUsuario',
+        db_column='idusuario',
         related_name='entregas_usuario'
     )
     idCorrespondecia = models.ForeignKey(
         RegistroCorrespondencia,
         on_delete=models.DO_NOTHING,
-        db_column='idCorrespondecia',
+        db_column='idcorrespondecia',
         related_name='entregas_correspondencia'
     )
     idDetalles_residente = models.ForeignKey(
-        'DetalleResidente',  # Asumiendo que tienes un modelo llamado DetalleResidente
+        'detalledesidente',  # Asumiendo que tienes un modelo llamado DetalleResidente
         on_delete=models.DO_NOTHING,
-        db_column='idDetalles_residente',
+        db_column='iddetalles_residente',
         related_name='entregas_residente'
     )
 
     class Meta:
         managed = True  # Django no intentará crear o modificar la tabla
-        db_table = "EntregaCorrespondecia"
+        db_table = "entregacorrespondecia"
 
     def __str__(self):
         return f"Entrega {self.id_Entrega} - {self.idDetalles_residente}"
@@ -431,12 +431,12 @@ class PagosReserva(models.Model):
     
 class Novedades(models.Model):
     id_novedad = models.AutoField(primary_key=True)
-    descripcion = models.TextField(db_column='Descripcion')
+    descripcion = models.TextField(db_column='descripcion')
     foto = models.FileField(upload_to='novedades/', null=True, blank=True)  # Cambio aquí
     fecha = models.DateTimeField(auto_now_add=True)
     
     id_detalle_residente = models.ForeignKey(
-        'DetalleResidente',
+        'detalleResidente',
         on_delete=models.DO_NOTHING,
         db_column='id_detalle_residente',
         null=True,
@@ -444,7 +444,7 @@ class Novedades(models.Model):
     )
     
     id_visitante = models.ForeignKey(
-        'Visitante',
+        'visitante',
         on_delete=models.DO_NOTHING,
         db_column='id_visitante',
         null=True,
@@ -454,13 +454,13 @@ class Novedades(models.Model):
     id_paquete = models.ForeignKey(
         'vigilante.Paquete',  # 👈 referencia la app correcta
         on_delete=models.DO_NOTHING,
-        db_column='ID_paquete',
+        db_column='id_paquete',
         null=True,
         blank=True
     )
     
     id_usuario = models.ForeignKey(
-        'Usuario',
+        'usuario',
         on_delete=models.DO_NOTHING,
         db_column='id_usuario',
         null=True,
