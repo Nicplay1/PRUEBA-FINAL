@@ -31,7 +31,7 @@ try:
             correo='admin@render.com',
             telefono='0000000',
             celular='0000000000',
-            contraseña='admin123',
+            contraseña='admin123456',
             id_rol=rol
         )
         print("✅ Usuario creado con éxito.")
