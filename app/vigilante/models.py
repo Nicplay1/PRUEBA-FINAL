@@ -30,5 +30,5 @@ class Paquete(models.Model):
     foto_cedula = models.ImageField(upload_to='cedulas_entrega/', null=True, blank=True, db_column='foto_cedula')
 
     class Meta:
-        db_table = 'Paquete'
-        managed = False
+        db_table = "Paquete"
+        managed = True

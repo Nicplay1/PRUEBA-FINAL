@@ -18,7 +18,7 @@ class Rol(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Rol'
+        db_table = "Rol"
 
     def __str__(self):
         return self.nombre_rol
@@ -43,8 +43,9 @@ class Usuario(models.Model):
     reset_token_expira = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        db_table = "Usuario"   # <- Esto fuerza a Django a usar esa tabla
-        managed = True  # <- Esto le dice a Django que NO maneje migraciones
+                  # <- Esto fuerza a Django a usar esa tabla
+        managed = True 
+        db_table = "Usuario"# <- Esto le dice a Django que NO maneje migraciones
         
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"    
@@ -96,7 +97,7 @@ class ZonaComun(models.Model):
         managed = True
         
         # Le dice a Django el nombre exacto de la tabla en la base de datos
-        db_table = 'Zona_comun'
+        db_table = "Zona_comun"
 
     def __str__(self):
         return self.nombre_zona
@@ -126,7 +127,7 @@ class Reserva(models.Model):
 
     class Meta:
         managed = True   # ⚠️ Recuerda que Django NO manejará migraciones aquí
-        db_table = 'Reserva'
+        db_table = "Reserva"
 
     def __str__(self):
         return f"Reserva {self.id_reserva} - {self.cod_usuario}"
@@ -141,7 +142,7 @@ class DetalleResidente(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Detalle_residente'
+        db_table = "Detalle_residente"
 
     def __str__(self):
         return f"Residente {self.cod_usuario} - Torre {self.torre}, Apto {self.apartamento}"
@@ -160,7 +161,7 @@ class Noticias(models.Model):
 
     class Meta:
         managed = True   # porque la tabla ya existe en la BD
-        db_table = 'Noticias'
+        db_table = "Noticias"
 
     def __str__(self):
         return f"Noticia {self.id_noticia}: {self.descripcion[:30]}..."
@@ -185,7 +186,7 @@ class VehiculoResidente(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Vehiculo_residente'
+        db_table = "Vehiculo_residente"
 
     def __str__(self):
         return f"{self.placa} - {self.tipo_vehiculo}"
@@ -208,7 +209,7 @@ class TipoArchivo(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'TipoArchivo'
+        db_table = "TipoArchivo"
 
     def __str__(self):
         return self.tipo_documento
@@ -235,7 +236,7 @@ class ArchivoVehiculo(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'ArchivoVehiculo'
+        db_table = "ArchivoVehiculo"
 
     def __str__(self):
         return f"{self.idVehiculo.placa} - {self.idTipoArchivo.tipo_documento}"
@@ -249,7 +250,7 @@ class Parqueadero(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Parqueadero'
+        db_table = "Parqueadero"
 
     def __str__(self):
         return f"Parqueadero {self.numero_parqueadero}"
@@ -265,7 +266,7 @@ class Sorteo(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Sorteo'
+        db_table = "Sorteo"
 
     def __str__(self):
         tipo = "Propietarios" if self.tipo_residente_propietario else "Arrendatarios" if self.tipo_residente_propietario == False else "Todos"
@@ -282,7 +283,7 @@ class GanadorSorteo(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'Ganador_sorteo'
+        db_table = "Ganador_sorteo"
 
     def __str__(self):
         return f"Ganador: {self.id_detalle_residente} - Parqueadero {self.id_parqueadero.numero_parqueadero}"
@@ -306,7 +307,7 @@ class Visitante(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'visitante'
+        db_table = "visitante"
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos} - {self.placa}"
@@ -344,7 +345,7 @@ class DetallesParqueadero(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'detalles_parqueadero'
+        db_table = "detalles_parqueadero"
 
     def __str__(self):
         return f"Detalle {self.id_detalle} - {self.tipo_propietario}"
@@ -367,8 +368,8 @@ class RegistroCorrespondencia(models.Model):
     )
 
     class Meta:
-        db_table = 'RegistroCorrespondencia'
         managed = True # Django no intentará crear ni modificar la tabla
+        db_table = "RegistroCorrespondencia"
 
     def __str__(self):
         return f"{self.tipo} - {self.descripcion[:20]}"
@@ -397,8 +398,8 @@ class EntregaCorrespondencia(models.Model):
     )
 
     class Meta:
-        db_table = 'EntregaCorrespondecia'
         managed = True  # Django no intentará crear o modificar la tabla
+        db_table = "EntregaCorrespondecia"
 
     def __str__(self):
         return f"Entrega {self.id_Entrega} - {self.idDetalles_residente}"
@@ -422,7 +423,7 @@ class PagosReserva(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'pagos_reserva'
+        db_table = "pagos_reserva"
 
     def __str__(self):
         return f"Pago {self.id_pago} de la Reserva {self.id_reserva.id_reserva}"
@@ -468,7 +469,7 @@ class Novedades(models.Model):
 
     class Meta:
         managed = True
-        db_table = 'novedades'
+        db_table = "novedades"
 
     def __str__(self):
         return f"Novedad {self.id_novedad} - {self.descripcion[:30]}"
