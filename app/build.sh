@@ -17,4 +17,6 @@ echo "🧱 Recreando migraciones..."
 python manage.py makemigrations
 python manage.py migrate --noinput
 
+python manage.py init_datos
+
 echo "✅ Migraciones aplicadas correctamente."
