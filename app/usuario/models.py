@@ -9,8 +9,8 @@ class Rol(models.Model):
     nombre_rol = models.CharField(max_length=50)
 
     class Meta:
-        managed = False
-        db_table = 'Rol'
+        managed = True
+        db_table = "rol"
 
     def __str__(self):
         return self.nombre_rol
@@ -31,20 +31,14 @@ class Usuario(models.Model):
     celular = models.CharField(max_length=13)
     estado = models.CharField(max_length=10, default='Activo')
     contraseña = models.CharField(max_length=250, null=True, blank=True)
-    id_rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='ID_rol', default=1)
+    id_rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='id_rol', default=1)
     reset_token = models.CharField(max_length=100, null=True, blank=True)
     reset_token_expira = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-<<<<<<< Updated upstream
-        db_table = "Usuario"   # <- Esto fuerza a Django a usar esa tabla
-        managed = False  # <- Esto le dice a Django que NO maneje migraciones
-        
-=======
         managed = True
         db_table = "usuario"
 
->>>>>>> Stashed changes
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
 
@@ -80,16 +74,8 @@ class ZonaComun(models.Model):
     tarifa_base = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     class Meta:
-<<<<<<< Updated upstream
-        # Esto le indica a Django que la tabla ya existe y no debe crearla
-        managed = False
-        
-        # Le dice a Django el nombre exacto de la tabla en la base de datos
-        db_table = 'Zona_comun'
-=======
         managed = True
         db_table = "zona_comun"
->>>>>>> Stashed changes
 
     def __str__(self):
         return self.nombre_zona
@@ -118,13 +104,8 @@ class Reserva(models.Model):
     cod_zona = models.ForeignKey(ZonaComun, on_delete=models.CASCADE, db_column='cod_zona')
 
     class Meta:
-<<<<<<< Updated upstream
-        managed = False   # ⚠️ Recuerda que Django NO manejará migraciones aquí
-        db_table = 'Reserva'
-=======
         managed = True
         db_table = "reserva"
->>>>>>> Stashed changes
 
     def __str__(self):
         return f"Reserva {self.id_reserva} - {self.cod_usuario}"
@@ -139,8 +120,8 @@ class DetalleResidente(models.Model):
     cod_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario')
 
     class Meta:
-        managed = False
-        db_table = 'Detalle_residente'
+        managed = True
+        db_table = "detalle_residente"
 
     def __str__(self):
         return f"Residente {self.cod_usuario} - Torre {self.torre}, Apto {self.apartamento}"
@@ -155,13 +136,8 @@ class Noticias(models.Model):
     cod_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario')
 
     class Meta:
-<<<<<<< Updated upstream
-        managed = False   # porque la tabla ya existe en la BD
-        db_table = 'Noticias'
-=======
         managed = True
         db_table = "noticias"
->>>>>>> Stashed changes
 
     def __str__(self):
         return f"Noticia {self.id_noticia}: {self.descripcion[:30]}..."
@@ -180,8 +156,8 @@ class VehiculoResidente(models.Model):
     cod_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario')
 
     class Meta:
-        managed = False
-        db_table = 'Vehiculo_residente'
+        managed = True
+        db_table = "vehiculo_residente"
 
     def __str__(self):
         return f"{self.placa} - {self.tipo_vehiculo}"
@@ -198,13 +174,8 @@ class TipoArchivo(models.Model):
     )
 
     class Meta:
-<<<<<<< Updated upstream
-        managed = False
-        db_table = 'TipoArchivo'
-=======
         managed = True
         db_table = "tipo_archivo"
->>>>>>> Stashed changes
 
     def __str__(self):
         return self.tipo_documento
@@ -220,8 +191,8 @@ class ArchivoVehiculo(models.Model):
     fecha_vencimiento = models.DateField(null=True, blank=True)
 
     class Meta:
-        managed = False
-        db_table = 'ArchivoVehiculo'
+        managed = True
+        db_table = "archivo_vehiculo"
 
     def __str__(self):
         return f"{self.id_vehiculo.placa} - {self.id_tipo_archivo.tipo_documento}"
@@ -235,8 +206,8 @@ class Parqueadero(models.Model):
     estado = models.BooleanField()
 
     class Meta:
-        managed = False
-        db_table = 'Parqueadero'
+        managed = True
+        db_table = "parqueadero"
 
     def __str__(self):
         return f"Parqueadero {self.numero_parqueadero}"
@@ -244,21 +215,16 @@ class Parqueadero(models.Model):
 
 # --------------------- SORTEO ---------------------
 class Sorteo(models.Model):
-<<<<<<< Updated upstream
-    id_sorteo = models.AutoField(primary_key=True, db_column='ID_sorteo')
-    fecha_creado = models.DateTimeField(auto_now_add=True, db_column='fecha_creado')
-=======
     id_sorteo = models.AutoField(primary_key=True, db_column='id_sorteo')
     fecha_creado = models.DateTimeField(auto_now_add=True)
->>>>>>> Stashed changes
     tipo_residente_propietario = models.BooleanField(null=True, blank=True)
     fecha_inicio = models.DateField()
     hora_sorteo = models.TimeField(null=True, blank=True)
     estado = models.BooleanField(default=False)
 
     class Meta:
-        managed = False
-        db_table = 'Sorteo'
+        managed = True
+        db_table = "sorteo"
 
     def __str__(self):
         tipo = "Propietarios" if self.tipo_residente_propietario else "Arrendatarios" if self.tipo_residente_propietario == False else "Todos"
@@ -275,8 +241,8 @@ class GanadorSorteo(models.Model):
     fecha_ganado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        managed = False
-        db_table = 'Ganador_sorteo'
+        managed = True
+        db_table = "ganador_sorteo"
 
     def __str__(self):
         return f"Ganador: {self.id_detalle_residente} - Parqueadero {self.id_parqueadero.numero_parqueadero}"
@@ -295,8 +261,8 @@ class Visitante(models.Model):
     apartamento = models.CharField(max_length=10, null=True, blank=True)
 
     class Meta:
-        managed = False
-        db_table = 'visitante'
+        managed = True
+        db_table = "visitante"
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos} - {self.placa}"
@@ -309,31 +275,6 @@ class DetallesParqueadero(models.Model):
         max_length=10,
         choices=[('Visitante', 'Visitante'), ('Residente', 'Residente')]
     )
-<<<<<<< Updated upstream
-    id_visitante = models.ForeignKey(
-        'Visitante',
-        models.DO_NOTHING,
-        db_column='id_visitante',
-        blank=True,
-        null=True
-    )
-    id_vehiculo_residente = models.ForeignKey(
-        'VehiculoResidente',
-        models.DO_NOTHING,
-        db_column='id_vehiculo_residente',
-        blank=True,
-        null=True
-    )
-    registro = models.DateField(auto_now_add=True)  # fecha automática
-    hora_llegada = models.TimeField(blank=True, null=True)
-    hora_salida = models.TimeField(blank=True, null=True)
-    pago = models.FloatField(blank=True, null=True)  # nuevo campo para el pago
-    id_parqueadero = models.ForeignKey(
-        'Parqueadero',
-        models.DO_NOTHING,
-        db_column='ID_parqueadero'
-    )
-=======
     id_visitante = models.ForeignKey(Visitante, on_delete=models.DO_NOTHING, db_column='id_visitante', null=True, blank=True)
     id_vehiculo_residente = models.ForeignKey(VehiculoResidente, on_delete=models.DO_NOTHING, db_column='id_vehiculo_residente', null=True, blank=True)
     registro = models.DateTimeField(auto_now_add=True)
@@ -341,11 +282,10 @@ class DetallesParqueadero(models.Model):
     hora_salida = models.TimeField(null=True, blank=True)
     pago = models.FloatField(null=True, blank=True)
     id_parqueadero = models.ForeignKey(Parqueadero, on_delete=models.DO_NOTHING, db_column='id_parqueadero')
->>>>>>> Stashed changes
 
     class Meta:
-        managed = False
-        db_table = 'detalles_parqueadero'
+        managed = True
+        db_table = "detalles_parqueadero"
 
     def __str__(self):
         return f"Detalle {self.id_detalle} - {self.tipo_propietario}"
@@ -360,13 +300,8 @@ class RegistroCorrespondencia(models.Model):
     cod_vigilante = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='cod_vigilante', related_name='correspondencias_vigilante')
 
     class Meta:
-<<<<<<< Updated upstream
-        db_table = 'RegistroCorrespondencia'
-        managed = False  # Django no intentará crear ni modificar la tabla
-=======
         managed = True
         db_table = "registro_correspondencia"
->>>>>>> Stashed changes
 
     def __str__(self):
         return f"{self.tipo} - {self.descripcion[:20]}"
@@ -374,32 +309,6 @@ class RegistroCorrespondencia(models.Model):
 
 # --------------------- ENTREGA CORRESPONDENCIA ---------------------
 class EntregaCorrespondencia(models.Model):
-<<<<<<< Updated upstream
-    id_Entrega = models.AutoField(primary_key=True)
-    fechaEntrega = models.DateTimeField(auto_now_add=True)  # se llena automáticamente
-    idUsuario = models.ForeignKey(
-        Usuario,
-        on_delete=models.DO_NOTHING,
-        db_column='idUsuario',
-        related_name='entregas_usuario'
-    )
-    idCorrespondecia = models.ForeignKey(
-        RegistroCorrespondencia,
-        on_delete=models.DO_NOTHING,
-        db_column='idCorrespondecia',
-        related_name='entregas_correspondencia'
-    )
-    idDetalles_residente = models.ForeignKey(
-        'DetalleResidente',  # Asumiendo que tienes un modelo llamado DetalleResidente
-        on_delete=models.DO_NOTHING,
-        db_column='idDetalles_residente',
-        related_name='entregas_residente'
-    )
-
-    class Meta:
-        db_table = 'EntregaCorrespondecia'
-        managed = False  # Django no intentará crear o modificar la tabla
-=======
     id_entrega = models.AutoField(primary_key=True)
     fecha_entrega = models.DateTimeField(auto_now_add=True)
     id_usuario = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, db_column='id_usuario', related_name='entregas_usuario')
@@ -409,32 +318,9 @@ class EntregaCorrespondencia(models.Model):
     class Meta:
         managed = True
         db_table = "entrega_correspondencia"
->>>>>>> Stashed changes
 
     def __str__(self):
         return f"Entrega {self.id_entrega} - {self.id_detalle_residente}"
-
-
-# --------------------- PAQUETE ---------------------
-class Paquete(models.Model):
-    id_paquete = models.AutoField(primary_key=True)
-    apartamento = models.IntegerField()
-    torre = models.IntegerField()
-    fecha_recepcion = models.DateTimeField(auto_now_add=True)
-    descripcion = models.CharField(max_length=255, null=True, blank=True)
-    cod_usuario_recepcion = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario_recepcion', related_name='paquetes_recepcion')
-    fecha_entrega = models.DateTimeField(null=True, blank=True)
-    cod_usuario_entrega = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='cod_usuario_entrega', null=True, blank=True, related_name='paquetes_entrega')
-    nombre_residente = models.CharField(max_length=100, null=True, blank=True)
-    foto_cedula = models.CharField(max_length=255, null=True, blank=True)
-
-    class Meta:
-        managed = True
-        db_table = "paquete"
-
-    def __str__(self):
-        return f"Paquete {self.id_paquete} - {self.nombre_residente}"
-
 
 # --------------------- PAGOS RESERVA ---------------------
 class PagosReserva(models.Model):
@@ -446,8 +332,8 @@ class PagosReserva(models.Model):
     id_reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE, db_column='id_reserva')
 
     class Meta:
-        managed = False
-        db_table = 'pagos_reserva'
+        managed = True
+        db_table = "pagos_reserva"
 
     def __str__(self):
         return f"Pago {self.id_pago} de la Reserva {self.id_reserva.id_reserva}"
@@ -456,53 +342,15 @@ class PagosReserva(models.Model):
 # --------------------- NOVEDADES ---------------------
 class Novedades(models.Model):
     id_novedad = models.AutoField(primary_key=True)
-<<<<<<< Updated upstream
-    descripcion = models.TextField(db_column='Descripcion')
-    foto = models.FileField(upload_to='novedades/', null=True, blank=True)  # Cambio aquí
-    fecha = models.DateTimeField(auto_now_add=True)
-    
-    id_detalle_residente = models.ForeignKey(
-        'DetalleResidente',
-        on_delete=models.DO_NOTHING,
-        db_column='id_detalle_residente',
-        null=True,
-        blank=True
-    )
-    
-    id_visitante = models.ForeignKey(
-        'Visitante',
-        on_delete=models.DO_NOTHING,
-        db_column='id_visitante',
-        null=True,
-        blank=True
-    )
-    
-    id_paquete = models.ForeignKey(
-        'vigilante.Paquete',  # 👈 referencia la app correcta
-        on_delete=models.DO_NOTHING,
-        db_column='ID_paquete',
-        null=True,
-        blank=True
-    )
-    
-    id_usuario = models.ForeignKey(
-        'Usuario',
-        on_delete=models.DO_NOTHING,
-        db_column='id_usuario',
-        null=True,
-        blank=True
-    )
-=======
     descripcion = models.TextField()
     foto = models.FileField(upload_to='novedades/', null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
     id_detalle_residente = models.ForeignKey(DetalleResidente, on_delete=models.DO_NOTHING, db_column='id_detalle_residente', null=True, blank=True)
     id_visitante = models.ForeignKey(Visitante, on_delete=models.DO_NOTHING, db_column='id_visitante', null=True, blank=True)
->>>>>>> Stashed changes
 
     class Meta:
-        managed = False
-        db_table = 'novedades'
+        managed = True
+        db_table = "novedades"
 
     def __str__(self):
         return f"Novedad {self.id_novedad} - {self.descripcion[:20]}"
