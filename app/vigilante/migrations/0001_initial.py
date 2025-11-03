@@ -24,8 +24,8 @@ class Migration(migrations.Migration):
                 ('foto_cedula', models.ImageField(blank=True, db_column='foto_cedula', null=True, upload_to='cedulas_entrega/')),
             ],
             options={
-                'db_table': 'Paquete',
-                'managed': False,
+                'db_table': 'paquete',
+                'managed': True,
             },
         ),
     ]
