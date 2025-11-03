@@ -3,6 +3,12 @@ from django.utils import timezone
 import uuid
 from datetime import timedelta
 
+
+class ProcesoValidacion(models.Model):
+    activo = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "Activo" if self.activo else "Inactivo"
 # --------------------- ROL ---------------------
 class Rol(models.Model):
     id_rol = models.AutoField(primary_key=True)

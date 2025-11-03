@@ -150,13 +150,16 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'  # si usas Bootstrap 5
 
 
 # Configuración de Gmail para envío de correos
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'altosdefontibon.cr@gmail.com'
 EMAIL_HOST_PASSWORD = 'heho zywq sayt pexm'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# 🟢 En Render, solo mostrar el correo en consola (no enviarlo)
+if os.environ.get("RENDER"):
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 TIME_ZONE = 'America/Bogota'

@@ -24,8 +24,7 @@ from django.utils.dateparse import parse_date
 def panel_general_admin(request):
     return render(request, "administrador/panel.html")
 
-@rol_requerido([3])
-@login_requerido
+
 def gestionar_usuarios(request):
     query = request.GET.get("q", "")
     usuarios = Usuario.objects.select_related("id_rol").all()
