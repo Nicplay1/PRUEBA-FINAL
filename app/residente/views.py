@@ -260,30 +260,30 @@ def eliminar_reserva(request, id_reserva):
 def detalles(request, vehiculo_id):
     # Obtener el vehículo y sus archivos
     vehiculo = get_object_or_404(VehiculoResidente, pk=vehiculo_id)
-    archivos = ArchivoVehiculo.objects.filter(idVehiculo=vehiculo)
+    archivos = ArchivoVehiculo.objects.filter(id_vehiculo=vehiculo)
     
-    # IDs de archivos existentes (para deshabilitar opciones en el select si quieres)
-    archivos_ids = [archivo.idTipoArchivo.pk for archivo in archivos]
+    # IDs de tipos de archivo existentes (para deshabilitar opciones en el select si quieres)
+    archivos_ids = [archivo.id_tipo_archivo.pk for archivo in archivos]
 
     if request.method == 'POST':
-        tipo_archivo_id = request.POST.get('idTipoArchivo')
-        archivo_existente = archivos.filter(idTipoArchivo_id=tipo_archivo_id).first()
+        tipo_archivo_id = request.POST.get('id_tipo_archivo')
+        archivo_existente = archivos.filter(id_tipo_archivo_id=tipo_archivo_id).first()
 
         # Usar instancia para actualizar si existe, o crear nuevo
         form = ArchivoVehiculoForm(request.POST, request.FILES, instance=archivo_existente)
 
         if form.is_valid():
             archivo_obj = form.save(commit=False)
-            archivo_obj.idVehiculo = vehiculo
+            archivo_obj.id_vehiculo = vehiculo  # 🔹 Campo corregido
 
             # Validar fecha de vencimiento
-            fecha_venc = form.cleaned_data.get('fechaVencimiento')
+            fecha_venc = form.cleaned_data.get('fecha_vencimiento')
             if fecha_venc and fecha_venc < now().date():
-                messages.error(request, "La fecha de vencimiento no puede ser anterior a hoy.")
+                messages.error(request, " La fecha de vencimiento no puede ser anterior a hoy.")
             else:
                 archivo_obj.save()
                 accion = "actualizado" if archivo_existente else "registrado"
-                messages.success(request, f"Archivo '{archivo_obj.idTipoArchivo}' {accion} correctamente.")
+                messages.success(request, f" Archivo '{archivo_obj.id_tipo_archivo}' {accion} correctamente.")
                 return redirect('detalles', vehiculo_id=vehiculo.id_vehiculo_residente)
     else:
         form = ArchivoVehiculoForm()
