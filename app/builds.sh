@@ -10,4 +10,4 @@ python manage.py makemigrations
 echo "Ejecutando migraciones..."
 python manage.py migrate --noinput
 
-echo "🔥 Build completado."
+echo "🔥 Migraciones aplicadas y build completado."
