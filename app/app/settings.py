@@ -83,13 +83,18 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # 🗄️ BASE DE DATOS (PostgreSQL Render)
 # ---------------------------------------
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://proyecto_bd_c4on_user:eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G@dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com/proyecto_bd_c4on',
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'proyecto_bd_c4on',
+        'USER': 'proyecto_bd_c4on_user',
+        'PASSWORD': 'eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G',
+        'HOST': 'dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require'
+        }
+    }
 }
-
 # ---------------------------------------
 # 🔐 VALIDACIÓN DE CONTRASEÑAS
 # ---------------------------------------
