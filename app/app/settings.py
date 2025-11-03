@@ -4,13 +4,24 @@ Django settings for app project.
 
 from pathlib import Path
 import os
+import dj_database_url  # ✅ importante para manejar la DB de Render correctamente
 
+# ---------------------------------------
+# 📂 RUTAS BASE
+# ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ---------------------------------------
+# 🔑 SEGURIDAD
+# ---------------------------------------
 SECRET_KEY = 'django-insecure-pf7lx3f(rk7&qqs33&(#sfgg2-_d=g9f9g=bfw2e5gr59vhnrt'
-DEBUG = True
+DEBUG = True  # Cambia a False si quieres ocultar errores en producción
 
-ALLOWED_HOSTS = ['prueba-final-6586.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'prueba-final-6586.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 # ---------------------------------------
 # 🧩 APLICACIONES
@@ -27,14 +38,15 @@ INSTALLED_APPS = [
     'residente',
     'vigilante',
     'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 # ---------------------------------------
-# ⚙️ MIDDLEWARE (se agregó Whitenoise)
+# ⚙️ MIDDLEWARE
 # ---------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ Debe ir justo aquí
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ Sirve archivos estáticos en producción
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -46,13 +58,17 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'app.urls'
 
+# ---------------------------------------
+# 🎨 TEMPLATES
+# ---------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # ✅ ruta correcta
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -64,20 +80,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'app.wsgi.application'
 
 # ---------------------------------------
-# 🗄️ BASE DE DATOS (Render PostgreSQL)
+# 🗄️ BASE DE DATOS (PostgreSQL Render)
 # ---------------------------------------
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'proyecto_bd_c4on',
-        'USER': 'proyecto_bd_c4on_user',
-        'PASSWORD': 'eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G',
-        'HOST': 'dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require'
-        }
-    }
+    'default': dj_database_url.config(
+        default='postgresql://proyecto_bd_c4on_user:eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G@dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com/proyecto_bd_c4on',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 # ---------------------------------------
@@ -102,18 +112,19 @@ USE_TZ = True
 # 🎨 ARCHIVOS ESTÁTICOS Y MULTIMEDIA
 # ---------------------------------------
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ requerido por Render
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]  # Carpeta con tus archivos CSS, JS, IMG
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Donde Django los recopila
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# ✅ Whitenoise (sirve estáticos comprimidos en Render)
+# ✅ Whitenoise: sirve estáticos comprimidos
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ---------------------------------------
-# 📧 CONFIGURACIÓN DE CORREO
+# 📧 CORREO (Gmail)
 # ---------------------------------------
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -121,12 +132,14 @@ EMAIL_HOST_USER = 'altosdefontibon.cr@gmail.com'
 EMAIL_HOST_PASSWORD = 'heho zywq sayt pexm'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# 🟢 En Render, solo mostrar el correo en consola (no enviarlo)
+# 🟢 En Render, usar consola para correos (no enviar realmente)
 if os.environ.get("RENDER"):
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEBUG = False  # ✅ importante para que carguen los archivos estáticos en producción
 
 # ---------------------------------------
 # 🧱 CONFIG EXTRA
 # ---------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
