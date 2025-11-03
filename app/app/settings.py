@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'proyecto_bd_c4on',
         'USER': 'proyecto_bd_c4on_user',
         'PASSWORD': 'eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G',
-        'HOST': 'dpg-d43t4rili9vc73dfutn0-a',
+        'HOST': 'dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com',
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require'
