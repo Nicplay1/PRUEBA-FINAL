@@ -85,7 +85,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 DATABASES = {
     # 🔹 Base de datos local (MySQL)
-    'default1': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'proyecto_bd',
         'USER': 'root',
@@ -99,7 +99,7 @@ DATABASES = {
     },
 
     # 🔹 Base de datos Render (PostgreSQL)
-    'default': {
+    'default1': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'proyecto_bd_c4on',
         'USER': 'proyecto_bd_c4on_user',
