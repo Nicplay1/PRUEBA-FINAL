@@ -5,22 +5,26 @@ echo "🚀 Instalando dependencias..."
 pip install -r requirements.txt
 
 echo "⚙️ Limpiando base de datos..."
-python manage.py migrate --fake usuario zero --noinput
-python manage.py migrate --fake vigilante zero --noinput
-python manage.py migrate --fake residente zero --noinput
-python manage.py migrate --fake administrador zero --noinput
+# Deshacer todas las migraciones de tus apps
+python manage.py migrate usuario zero --noinput || true
+python manage.py migrate vigilante zero --noinput || true
+python manage.py migrate residente zero --noinput || true
+python manage.py migrate administrador zero --noinput || true
+
+# Deshacer migraciones de apps Django internas para forzar recreación
+python manage.py migrate admin zero --noinput || true
+python manage.py migrate auth zero --noinput || true
+python manage.py migrate contenttypes zero --noinput || true
+python manage.py migrate sessions zero --noinput || true
 
 echo "🧹 Eliminando todos los datos existentes..."
-python manage.py flush --no-input
+python manage.py flush --no-input || true
 
-echo "🧩 Aplicando migraciones existentes..."
-python manage.py makemigrations
-python manage.py migrate --fake-initial --noinput
+echo "🧩 Aplicando migraciones desde cero..."
+# Aplica todas las migraciones sin --fake para crear columnas nuevas
+python manage.py migrate --noinput
 
-echo "🗂️ Recolectando archivos estáticos..."
-python manage.py collectstatic --noinput
-
-echo "⚡ Inicializando datos..."
+echo "📦 Creando datos iniciales..."
 python manage.py init_datos
 
 echo "✅ Migraciones aplicadas y base de datos limpia."
