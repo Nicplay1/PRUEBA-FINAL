@@ -70,7 +70,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 
 # Opción: cambiar 'default_db' a 'mysql' o 'postgres' según la base que quieras usar
-default_db = 'postgres'  # 'mysql' o 'postgres'
+default_db = 'mysql'  # 'mysql' o 'postgres'
 
 if default_db == 'mysql':
     DATABASES = {

@@ -346,6 +346,7 @@ def agregar_pago(request, id_reserva):
     )
 
 
+
 @rol_requerido([2])
 @login_requerido
 def lista_sorteos(request):
@@ -361,25 +362,39 @@ def lista_sorteos(request):
         messages.error(request, "No tienes un detalle de residente registrado.")
         return redirect('detalle_residente')
 
-    if detalle_residente.propietario is True:
+    # Filtrar sorteos según tipo de residente
+    if detalle_residente.propietario:
         sorteos = Sorteo.objects.filter(tipo_residente_propietario=True).order_by('-fecha_inicio')
-    elif detalle_residente.propietario is False:
-        sorteos = Sorteo.objects.filter(tipo_residente_propietario=False).order_by('-fecha_inicio')
     else:
-        sorteos = Sorteo.objects.all().order_by('-fecha_inicio')
+        sorteos = Sorteo.objects.filter(tipo_residente_propietario=False).order_by('-fecha_inicio')
 
     sorteos_info = []
+    hoy = date.today()
+
     for sorteo in sorteos:
-        participa = VehiculoResidente.objects.filter(
-            cod_usuario=usuario_logueado, documentos=True
+        # ¿Participó o ganó en este sorteo?
+        participo = GanadorSorteo.objects.filter(
+            id_sorteo=sorteo,
+            id_detalle_residente__cod_usuario=usuario_logueado
         ).exists()
 
-        gano = False
-        if participa:
-            gano = GanadorSorteo.objects.filter(
-                id_sorteo=sorteo,
-                id_detalle_residente__cod_usuario=usuario_logueado
-            ).exists()
+        gano = participo  # Asumimos que si está en GanadorSorteo, participó y ganó
+
+        # Validar documentos (si tienes esa lógica)
+        tiene_documentos_validos = detalle_residente.documentos_validos if hasattr(detalle_residente, 'documentos_validos') else False
+
+        # 🔹 Prioridad 1: si participó o ganó, siempre mostrar “Sí participa”
+        if participo or gano:
+            participa = True
+        # 🔹 Prioridad 2: si el sorteo es futuro y no tiene documentos válidos → No participa
+        elif sorteo.fecha_inicio > hoy and not tiene_documentos_validos:
+            participa = False
+        # 🔹 Prioridad 3: si el sorteo es futuro y tiene documentos válidos → Podría participar
+        elif sorteo.fecha_inicio > hoy and tiene_documentos_validos:
+            participa = True
+        # 🔹 Prioridad 4: si el sorteo ya pasó pero no participó → No participa
+        else:
+            participa = False
 
         sorteos_info.append({
             "sorteo": sorteo,
@@ -400,37 +415,64 @@ def detalle_sorteo(request, sorteo_id):
     sorteo = get_object_or_404(Sorteo, id_sorteo=sorteo_id)
     usuario_logueado = getattr(request, 'usuario', None)
 
+    # Buscar el vehículo del usuario (aunque tenga documentos deshabilitados)
     vehiculo = VehiculoResidente.objects.filter(
-        cod_usuario=usuario_logueado,
-        documentos=True
+        cod_usuario=usuario_logueado
     ).first()
     tiene_vehiculo = vehiculo is not None
 
-    participo = DetalleResidente.objects.filter(
-        cod_usuario=usuario_logueado
-    ).exists() and tiene_vehiculo
+    # Verificar si el usuario fue ganador de este sorteo
+    ganador = GanadorSorteo.objects.filter(
+        id_sorteo=sorteo,
+        id_detalle_residente__cod_usuario=usuario_logueado
+    ).select_related("id_parqueadero").first()
 
-    gano = False
-    parqueadero = None
+    gano = ganador is not None
+    parqueadero = ganador.id_parqueadero if ganador else None
 
+    # ----------------------------------------
+    # 🔹 Determinar si participó
+    # Participó si tiene vehículo y:
+    #  - El sorteo está pendiente y tiene documentos válidos, o
+    #  - El sorteo ya se realizó y tiene registro en GanadorSorteo o tenía vehículo antes
+    # ----------------------------------------
     if sorteo.estado:
-        ganador = GanadorSorteo.objects.filter(
+        # El sorteo ya se realizó, así que mostramos a quienes participaron o ganaron
+        participo = GanadorSorteo.objects.filter(
             id_sorteo=sorteo,
             id_detalle_residente__cod_usuario=usuario_logueado
-        ).select_related("id_parqueadero").first()
-
-        gano = ganador is not None
-        parqueadero = ganador.id_parqueadero if ganador else None
-
-    if not participo:
-        mensaje = "No participaste en este sorteo porque no tienes un vehículo válido."
-    elif not sorteo.estado:
-        mensaje = "Este sorteo aún no se ha realizado."
-    elif gano:
-        mensaje = "¡Felicidades! Ganaste en este sorteo."
+        ).exists() or tiene_vehiculo
     else:
-        mensaje = "Participaste, pero no ganaste en este sorteo."
+        # El sorteo está pendiente → depende del estado actual del vehículo
+        participo = VehiculoResidente.objects.filter(
+            cod_usuario=usuario_logueado,
+            documentos=True
+        ).exists()
 
+    # ----------------------------------------
+    # 🔹 Determinar mensaje principal
+    # ----------------------------------------
+    if sorteo.estado:
+        estado_sorteo = " Sorteo ya realizado"
+    else:
+        estado_sorteo = " Sorteo a la espera de su realización"
+
+    if sorteo.estado:
+        if gano:
+            mensaje = f"¡Felicidades! Ganaste en este sorteo. ({estado_sorteo})"
+        elif participo:
+            mensaje = f"Participaste, pero no ganaste en este sorteo. ({estado_sorteo})"
+        else:
+            mensaje = f"No participaste en este sorteo. ({estado_sorteo})"
+    else:
+        if participo:
+            mensaje = f"Vas a participar en este sorteo. ({estado_sorteo})"
+        else:
+            mensaje = f"No participarás en este sorteo porque no tienes vehículo válido. ({estado_sorteo})"
+
+    # ----------------------------------------
+    # 🔹 Contexto para el template
+    # ----------------------------------------
     context = {
         "sorteo": sorteo,
         "usuario": usuario_logueado,
@@ -438,6 +480,6 @@ def detalle_sorteo(request, sorteo_id):
         "parqueadero": parqueadero,
         "participo": participo,
         "gano": gano,
-        "mensaje": mensaje
+        "mensaje": mensaje,
     }
     return render(request, "residente/sorteo/detalle_sorteo.html", context)
