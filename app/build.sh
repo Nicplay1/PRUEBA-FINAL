@@ -17,7 +17,7 @@ python manage.py flush --no-input
 echo "🧩 Aplicando migraciones existentes..."
 # Aplica migraciones reales ahora, no solo fake
 python manage.py makemigrations
-python manage.py migrate --noinput
+python manage.py migrate --fake-initial --noinput
 
 echo "🗂️ Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
