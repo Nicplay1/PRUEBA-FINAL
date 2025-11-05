@@ -1,8 +1,5 @@
 from django.core.management.base import BaseCommand
-from vigilante.models import Rol, ZonaComun, TipoArchivo, Parqueadero, Usuario
-from django.utils import timezone
-import uuid
-from datetime import timedelta
+from usuario.models import Rol, ZonaComun, TipoArchivo, Parqueadero, Usuario
 
 class Command(BaseCommand):
     help = "Inserta datos iniciales en las tablas rol, zona_comun, tipo_archivo, parqueadero y usuario admin"
@@ -108,8 +105,8 @@ class Command(BaseCommand):
                 "apellidos": "Principal",
                 "tipo_documento": "CC",
                 "correo": "admin@altosdefontibon.com",
-                "telefono": "1234567" + "89012",  # 7 dígitos + 5 extra = 12
-                "celular": "3216549870",          # inventado
+                "telefono": "123456789012",  # 12 dígitos, los primeros 7 fijos
+                "celular": "3216549870",      # inventado
                 "contraseña": "administradro.2025$",
                 "id_rol": rol_admin,
                 "estado": "Activo",
