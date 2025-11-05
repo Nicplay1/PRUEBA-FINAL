@@ -165,9 +165,10 @@ class UsuarioUpdateForm(forms.ModelForm):
         usuario = super().save(commit=False)
         nueva_contrasena = self.cleaned_data.get('contraseña')
 
-        if nueva_contrasena:
+        if nueva_contrasena:  # solo actualiza si se ingresa algo
             usuario.contraseña = make_password(nueva_contrasena)
         else:
+            # si no hay contraseña nueva, mantenemos la que ya estaba
             usuario.contraseña = Usuario.objects.get(pk=usuario.pk).contraseña
 
         if commit:
