@@ -74,7 +74,7 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_requerido
+login_requerido
 def perfil_usuario(request):
     usuario = getattr(request, 'usuario', None)
     if not usuario:
@@ -86,6 +86,7 @@ def perfil_usuario(request):
 
     vehiculo = VehiculoResidente.objects.filter(cod_usuario=usuario).first()
     form_usuario = UsuarioUpdateForm(instance=usuario)
+    form_vehiculo = VehiculoResidenteForm(instance=vehiculo)  # Inicializamos por defecto
 
     if request.method == 'POST':
         if 'vehiculo_submit' in request.POST:
@@ -93,21 +94,15 @@ def perfil_usuario(request):
             placa_nueva_raw = request.POST.get('placa', '').upper().strip().replace('-', '').replace(' ', '')
             placa_nueva_formateada = f"{placa_nueva_raw[:3]}-{placa_nueva_raw[3:]}" if len(placa_nueva_raw) >= 5 else placa_nueva_raw
 
-            existente = VehiculoResidente.objects.filter(placa__iexact=placa_nueva_formateada).exclude(cod_usuario=usuario).first()
+            existente = VehiculoResidente.objects.filter(
+                placa__iexact=placa_nueva_formateada
+            ).exclude(cod_usuario=usuario).first()
+            
+            form_vehiculo = VehiculoResidenteForm(request.POST, instance=vehiculo or VehiculoResidente())
+
             if existente:
                 messages.error(request, f"La placa {placa_nueva_formateada} ya está registrada por otro usuario.")
-                form_vehiculo = VehiculoResidenteForm(request.POST, instance=vehiculo or VehiculoResidente())
-                return render(request, 'usuario/perfil.html', {
-                    'usuario': usuario,
-                    'residente': residente,
-                    'vehiculo': vehiculo,
-                    'vehiculos': [vehiculo] if vehiculo else [],
-                    'form_usuario': form_usuario,
-                    'form_vehiculo': form_vehiculo,
-                })
-
-            form_vehiculo = VehiculoResidenteForm(request.POST, instance=vehiculo)
-            if form_vehiculo.is_valid():
+            elif form_vehiculo.is_valid():
                 nuevo_vehiculo = form_vehiculo.save(commit=False)
                 nuevo_vehiculo.cod_usuario = usuario
                 if nuevo_vehiculo.activo is None:
@@ -117,14 +112,6 @@ def perfil_usuario(request):
                 return redirect('perfil_usuario')
             else:
                 messages.error(request, "Error en el formulario de vehículo. Verifique los datos ingresados.")
-                return render(request, 'usuario/perfil.html', {
-                    'usuario': usuario,
-                    'residente': residente,
-                    'vehiculo': vehiculo,
-                    'vehiculos': [vehiculo] if vehiculo else [],
-                    'form_usuario': form_usuario,
-                    'form_vehiculo': form_vehiculo,
-                })
 
         elif 'usuario_submit' in request.POST:
             form_usuario = UsuarioUpdateForm(request.POST, instance=usuario)
@@ -133,10 +120,9 @@ def perfil_usuario(request):
                 messages.success(request, "Datos actualizados correctamente.")
                 return redirect('perfil_usuario')
 
-    else:
-        form_vehiculo = VehiculoResidenteForm(instance=vehiculo) if vehiculo else VehiculoResidenteForm()
-
+    # Actualizamos el vehículo para el template después del POST
     vehiculo = VehiculoResidente.objects.filter(cod_usuario=usuario).first()
+    form_vehiculo = form_vehiculo or VehiculoResidenteForm(instance=vehiculo)
 
     return render(request, 'usuario/perfil.html', {
         'usuario': usuario,
