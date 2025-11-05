@@ -74,7 +74,7 @@ def logout_view(request):
     return redirect('login')
 
 
-login_requerido
+@login_requerido
 def perfil_usuario(request):
     usuario = getattr(request, 'usuario', None)
     if not usuario:
