@@ -137,12 +137,12 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # 📧 CONFIGURACIÓN DE CORREO
 # ---------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'altosdefontibon.cr@gmail.com'
-EMAIL_HOST_PASSWORD = 'heho zywq sayt pexm'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = 'apikey'  # Esto siempre es literal 'apikey'
+EMAIL_HOST_PASSWORD = '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'  # La clave que copiaste
+DEFAULT_FROM_EMAIL = 'nicolasballesteros900@gmail.com'  # Correo verificado en SendGrid
 
 # 🟢 En Render, solo mostrar el correo en consola (no enviarlo)
 
