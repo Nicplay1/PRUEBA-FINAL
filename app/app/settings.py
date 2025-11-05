@@ -144,8 +144,7 @@ EMAIL_HOST_PASSWORD = 'heho zywq sayt pexm'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # 🟢 En Render, solo mostrar el correo en consola (no enviarlo)
-if os.environ.get("RENDER"):
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 
 # ---------------------------------------
 # 🧱 CONFIG EXTRA
