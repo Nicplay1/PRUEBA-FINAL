@@ -505,7 +505,7 @@ def sorteo_vehiculos(request, sorteo_id):
                                 f"Vehículo: {vehiculo.placa if vehiculo else 'No registrado'}\n\n"
                                 "Atentamente,\nAdministración Altos de Fontibón"
                             ),
-                            from_email="altosdefontibon.cr@gmail.com",
+                            from_email="nicolasballesteros900@gmail.com",
                             recipient_list=[ganador_residente.cod_usuario.correo],
                             fail_silently=False,
                         )
