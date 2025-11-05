@@ -340,7 +340,7 @@ def sorteos_list_create(request):
         'form': form,
     }
     return render(request, 'administrador/sorteo/sorteos.html', context)
-    return render(request, 'administrador/sorteo/sorteos.html', context)
+  
 
 
 
