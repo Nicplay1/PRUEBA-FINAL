@@ -59,14 +59,14 @@ class VehiculoResidenteForm(forms.ModelForm):
 
 class SorteoForm(forms.ModelForm):
     tipo_residente_propietario = forms.BooleanField(
-        required=False,  # Permite null
+        required=False,
         label='Propietario',
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
     class Meta:
         model = Sorteo
-        fields = ['tipo_residente_propietario', 'fecha_inicio', 'hora_sorteo']  # Campos exactos
+        fields = ['tipo_residente_propietario', 'fecha_inicio', 'hora_sorteo']
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'hora_sorteo': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
@@ -78,7 +78,7 @@ class SorteoForm(forms.ModelForm):
 
     def clean_fecha_inicio(self):
         fecha = self.cleaned_data.get('fecha_inicio')
-        if fecha < timezone.now().date():
+        if fecha and fecha < timezone.now().date():
             raise forms.ValidationError("No puedes seleccionar una fecha pasada.")
         return fecha
 

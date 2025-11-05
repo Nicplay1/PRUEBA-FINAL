@@ -306,29 +306,27 @@ def sorteos_list_create(request):
     sorteos = Sorteo.objects.all().order_by('-fecha_creado')
 
     if request.method == 'POST':
-        # Crear sorteo
         if 'crear_sorteo' in request.POST:
             form = SorteoForm(request.POST)
             if form.is_valid():
-                fecha_sorteo = form.cleaned_data['fecha_inicio']
-                if fecha_sorteo < timezone.now().date():
-                    messages.error(request, "No puedes crear un sorteo en una fecha pasada.")
-                else:
-                    sorteo = form.save()
-                    messages.success(request, "Sorteo fue creado correctamente.")
-                    return redirect('sorteos_list_create')
+                form.save()
+                messages.success(request, " Sorteo creado correctamente.")
+                return redirect('sorteos_list_create')
+            else:
+                # Mostrar los errores reales del formulario
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f" {error}")
 
-        # Liberar parqueaderos propietarios
         elif 'liberar_propietarios' in request.POST:
             parqueaderos = Parqueadero.objects.filter(comunal=True, estado=True)
             parqueaderos.update(estado=False)
-            messages.success(request, "Se liberaron todos los parqueaderos de propietarios.")
+            messages.success(request, " Se liberaron todos los parqueaderos de propietarios.")
 
-        # Liberar parqueaderos arrendatarios
         elif 'liberar_arrendatarios' in request.POST:
             parqueaderos = Parqueadero.objects.filter(comunal=False, estado=True)
             parqueaderos.update(estado=False)
-            messages.success(request, "Se liberaron todos los parqueaderos de arrendatarios.")
+            messages.success(request, " Se liberaron todos los parqueaderos de arrendatarios.")
 
         return redirect('sorteos_list_create')
 
@@ -339,6 +337,7 @@ def sorteos_list_create(request):
         'sorteos': sorteos,
         'form': form,
     }
+    return render(request, 'administrador/sorteo/sorteos.html', context)
     return render(request, 'administrador/sorteo/sorteos.html', context)
 
 
