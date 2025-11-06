@@ -107,61 +107,8 @@
             </h1>
         </div>
 
-        <div class="content-body">
-            {% if detalle %}
-                {% if noticias %}
-                    <div class="flex flex-col gap-6">
-                        {% for noticia in noticias %}
-                            <div class="news-card">
-                                <h3 class="news-title">
-                                    <i class="fas fa-bullhorn"></i> {{ noticia.titulo }}
-                                </h3>
-                                <p class="news-description">{{ noticia.descripcion }}</p>
-                                <div class="news-date">
-                                    <i class="far fa-calendar-alt"></i> {{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-newspaper"></i>
-                        <div>No hay noticias publicadas.</div>
-                    </div>
-                {% endif %}
-            {% else %}
-                <div class="welcome-message">
-                    <h1 class="welcome-title">Completar Perfil</h1>
-                    <p class="welcome-subtitle">Para acceder a todas las funcionalidades, necesitamos que completes tus datos de residente.</p>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                        <i class="fas fa-user text-blue-600 mr-3"></i> Registrar Detalles del Residente
-                    </h2>
-
-                    <form method="post" class="space-y-4">
-                        {% csrf_token %}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {% for field in form %}
-                                <div class="form-group">
-                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                    {{ field }}
-                                    {% if field.help_text %}
-                                        <small class="text-gray-500">{{ field.help_text }}</small>
-                                    {% endif %}
-                                    {% for error in field.errors %}
-                                        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <button type="submit" class="btn-modern mt-4">
-                            <i class="fas fa-save"></i> Guardar Detalles
-                        </button>
-                    </form>
-                </div>
-            {% endif %}
+        <div id="noticiasContainer">
+            {% include 'residente/detalles_residente/_noticias_list.html' %}
         </div>
     </main>
 

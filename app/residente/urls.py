@@ -4,7 +4,9 @@ from . import views
 urlpatterns = [
     path("panel/", views.panel_general_residente, name="panel_residente"),
     path("residente/", views.detalle_residente, name="detalle_residente"),
+    
     path('noticias/', views.noticias, name='noticias'),
+    path('noticias/fragmento/', views.noticias_fragmento, name='noticias_fragmento'),
     
     path("zonas/", views.listar_zonas, name="listar_zonas"),
     path("reservar/<int:id_zona>/", views.crear_reserva, name="crear_reserva"),

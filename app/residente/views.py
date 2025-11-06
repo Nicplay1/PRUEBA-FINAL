@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import now
+from django.template.loader import render_to_string
 
 
 @rol_requerido([2])
@@ -16,6 +17,15 @@ from django.utils.timezone import now
 def panel_general_residente(request):
     return render(request, "residente/panel.html")
 
+
+
+
+@login_requerido
+@rol_requerido([2])
+def noticias_fragmento(request):
+    noticias_list = Noticias.objects.all().order_by('-fecha_publicacion')
+    html = render_to_string('residente/detalles_residente/_noticias_list.html', {'noticias': noticias_list})
+    return JsonResponse({'html': html})
 
 @login_requerido
 @rol_requerido([2])

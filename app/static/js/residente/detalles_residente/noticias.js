@@ -1,24 +1,14 @@
-const noticiasContainer = document.getElementById("noticias-container");
+function actualizarNoticias() {
+    fetch("{% url 'noticias_fragmento' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('noticiasContainer').innerHTML = data.html;
+        })
+        .catch(err => console.error('Error al actualizar noticias:', err));
+}
 
-const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-const socket = new WebSocket(`${protocol}://${window.location.host}/ws/noticias/`);
-
-socket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    noticiasContainer.innerHTML = "";
-
-    data.noticias.forEach(noticia => {
-        const div = document.createElement("div");
-        div.innerHTML = `<h3>${noticia.titulo}</h3>
-                         <p>${noticia.descripcion}</p>
-                         <small>${noticia.fecha_publicacion}</small>`;
-        noticiasContainer.appendChild(div);
-    });
-};
-
-socket.onclose = function(e) {
-    console.error("Socket cerrado inesperadamente.");
-};
+// Actualiza cada 5 segundos (5000 ms)
+setInterval(actualizarNoticias, 4000);
 
 setTimeout(() => {
     document.querySelectorAll('.alert-modern').forEach(el => {
