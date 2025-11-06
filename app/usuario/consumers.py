@@ -2,7 +2,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.template.loader import render_to_string
-from usuario.models import Usuario, Rol
+from asgiref.sync import sync_to_async
+
 
 class UsuariosConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -13,14 +14,24 @@ class UsuariosConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard("usuarios_group", self.channel_name)
 
     async def receive(self, text_data):
-        pass  # No recibimos datos del cliente
+        # No se recibe nada del cliente, solo se envía desde el servidor
+        pass
 
     async def enviar_lista_usuarios(self, event):
-        usuarios = Usuario.objects.select_related("id_rol").all()
+        # Importamos dentro de la función (para evitar AppRegistryNotReady)
+        from usuario.models import Usuario, Rol
+
+        # Ejecutamos consultas de forma asíncrona segura
+        usuarios = await sync_to_async(list)(
+            Usuario.objects.select_related("id_rol").all()
+        )
+        roles = await sync_to_async(list)(Rol.objects.all())
+
         html = render_to_string("administrador/usuario/tabla_usuarios.html", {
             "usuarios": usuarios,
-            "roles": Rol.objects.all()
+            "roles": roles
         })
+
         await self.send(text_data=json.dumps({
             "html": html
         }))
