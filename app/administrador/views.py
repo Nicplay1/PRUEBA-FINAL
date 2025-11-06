@@ -17,12 +17,10 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.dateparse import parse_date
-from django.conf import settings
-import requests
+
+
 
 # Para WebSocket
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from app.utils.utils_ws import enviar_noticias_ws
 from app.utils.utils_reservas import *
 
