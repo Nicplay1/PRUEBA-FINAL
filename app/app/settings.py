@@ -78,10 +78,14 @@ ASGI_APPLICATION = "app.asgi.application"
 # Configurar Redis para producción
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
+
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get("REDIS_URL")],
+        },
+    },
 }
 
 # ---------------------------------------
