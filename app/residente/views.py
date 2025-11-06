@@ -27,6 +27,7 @@ def noticias_fragmento(request):
     html = render_to_string('residente/detalles_residente/_noticias_list.html', {'noticias': noticias_list})
     return JsonResponse({'html': html})
 
+
 @login_requerido
 @rol_requerido([2])
 def noticias(request):

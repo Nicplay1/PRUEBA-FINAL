@@ -1,20 +1,34 @@
-function conectarWS() {
-    const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const socket = new WebSocket(ws_scheme + "://" + window.location.host + "/ws/noticias/");
+(function () {
 
-    socket.onmessage = function(e) {
+    const contenedor = document.getElementById("contenedor-noticias");
+    const notificaciones = document.getElementById("notificaciones");
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/noticias/");
+
+    socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        document.getElementById('noticiasContainer').innerHTML = data.html;
+
+        if (data.html) {
+            contenedor.innerHTML = data.html;
+        }
+
+        if (data.mensaje) {
+            const div = document.createElement("div");
+            div.className = "alert-modern alert-success";
+            div.innerHTML = `
+                <i class="fas fa-newspaper"></i> ${data.mensaje}
+            `;
+            notificaciones.appendChild(div);
+
+            setTimeout(() => div.remove(), 4000);
+        }
     };
 
-    socket.onopen = () => console.log("WebSocket conectado");
-    socket.onclose = () => {
-        console.error("WebSocket cerrado. Reconectando en 3s...");
-        setTimeout(conectarWS, 3000);
-    };
-}
+    socket.onopen = () => console.log("✅ WebSocket Noticias conectado");
+    socket.onclose = () => console.warn("❌ WebSocket Noticias cerrado");
+})();
 
-conectarWS();
 
 
 
