@@ -8,7 +8,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-pf7lx3f(rk7&qqs33&(#sfgg2-_d=g9f9g=bfw2e5gr59vhnrt'
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['prueba-final-6586.onrender.com', 'localhost', '127.0.0.1']
 
@@ -113,11 +113,11 @@ elif default_db == 'postgres':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'proyecto_bd_c4on',
-            'USER': 'proyecto_bd_c4on_user',
-            'PASSWORD': 'eV16YhehCwxaSkIWw8MpEHmmNvVtKC8G',
-            'HOST': 'dpg-d43t4rili9vc73dfutn0-a.oregon-postgres.render.com',
-            'PORT': '5432',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT', '5432'),
             'OPTIONS': {
                 'sslmode': 'require'
             }
