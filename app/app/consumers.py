@@ -22,8 +22,9 @@ class AdminUserConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(payload))
         
         
-class NoticiasConsumer(AsyncWebsocketConsumer):
 
+
+class NoticiasConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.channel_layer.group_add("noticias_updates", self.channel_name)
         await self.accept()
@@ -33,3 +34,4 @@ class NoticiasConsumer(AsyncWebsocketConsumer):
 
     async def send_update(self, event):
         await self.send(text_data=json.dumps(event["data"]))
+

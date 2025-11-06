@@ -1,5 +1,4 @@
 (function () {
-
     const contenedor = document.getElementById("contenedor-noticias");
     const notificaciones = document.getElementById("notificaciones");
 
@@ -13,7 +12,7 @@
             contenedor.innerHTML = data.html;
         }
 
-        if (data.mensaje) {
+        if (data.mensaje && notificaciones) {
             const div = document.createElement("div");
             div.className = "alert-modern alert-success";
             div.innerHTML = `
@@ -25,9 +24,10 @@
         }
     };
 
-    socket.onopen = () => console.log("✅ WebSocket Noticias conectado");
-    socket.onclose = () => console.warn("❌ WebSocket Noticias cerrado");
+    socket.onopen = () => console.log("✅ WS Noticias conectado");
+    socket.onclose = () => console.warn("❌ WS Noticias cerrado");
 })();
+
 
 
 

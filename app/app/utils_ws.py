@@ -18,7 +18,7 @@ def enviar_noticias_ws():
             "type": "send_update",
             "data": {
                 "html": html,
-                "mensaje": "Noticias actualizadas!"
+                "mensaje": "Se han actualizado las noticias"
             },
         }
     )

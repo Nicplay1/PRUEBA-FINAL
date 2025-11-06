@@ -23,6 +23,7 @@ import requests
 # Para WebSocket
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from app.utils_ws import enviar_noticias_ws
 
 
 @rol_requerido([3])
@@ -156,23 +157,7 @@ def eliminar_pago(request, pago_id):
 
 
 
-# -----------------------------------------
-# Función para enviar noticias vía WebSocket
-# -----------------------------------------
-def enviar_noticias_ws():
-    noticias = Noticias.objects.all().order_by('-fecha_publicacion')
 
-    # Renderizamos HTML con la lista de noticias
-    html = render_to_string('residente/detalles_residente/_noticias_list.html', {'noticias': noticias})
-
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "noticias",
-        {
-            "type": "enviar_noticias",
-            "html": html
-        }
-    )
 # -----------------------------------------
 # Listar, crear y editar noticias
 # -----------------------------------------
@@ -189,7 +174,7 @@ def listar_noticias(request):
             noticia.cod_usuario = request.usuario
             noticia.save()
 
-            # Notificar cambios a todos los residentes
+            # 🔥 Notificar vía WS
             enviar_noticias_ws()
 
             messages.success(request, "Noticia creada exitosamente ")
@@ -202,7 +187,7 @@ def listar_noticias(request):
         if form.is_valid():
             form.save()
 
-            # Notificar cambios a todos los residentes
+            # 🔥 Notificar vía WS
             enviar_noticias_ws()
 
             messages.success(request, "Noticia actualizada correctamente ")
@@ -216,16 +201,14 @@ def listar_noticias(request):
         "form": form,
     })
 
-# -----------------------------------------
-# Eliminar noticia
-# -----------------------------------------
+
 @rol_requerido([3])
 @login_requerido
 def eliminar_noticia(request, id_noticia):
     noticia = get_object_or_404(Noticias, id_noticia=id_noticia)
     noticia.delete()
 
-    # Notificar cambios a todos los residentes
+    # 🔥 Notificar vía WS
     enviar_noticias_ws()
 
     messages.success(request, "Noticia eliminada ")
