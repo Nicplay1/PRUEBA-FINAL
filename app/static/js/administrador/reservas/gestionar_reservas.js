@@ -1,3 +1,33 @@
+(function () {
+    const tbody = document.getElementById("tbody-reservas");
+    const notificaciones = document.getElementById("ws-reservas-mensajes");
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(wsScheme + "://" + window.location.host + "/ws/reservas/");
+
+    socket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        if (data.html) {
+            tbody.innerHTML = data.html;
+        }
+
+        if (data.mensaje) {
+            const div = document.createElement("div");
+            div.className = "alert-modern alert-info";
+            div.innerHTML = `
+                <i class="fas fa-sync"></i> ${data.mensaje}
+            `;
+            notificaciones.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
+    };
+
+})();
+ 
+ 
+ 
+ 
  const toggleBtn = document.getElementById('toggleSidebar');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');

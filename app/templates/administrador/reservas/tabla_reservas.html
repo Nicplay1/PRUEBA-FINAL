@@ -1,0 +1,38 @@
+{% for reserva in reservas %}
+<tr>
+    <td>{{ reserva.id_reserva }}</td>
+    <td>{{ reserva.cod_usuario.nombres }} {{ reserva.cod_usuario.apellidos }}</td>
+    <td>{{ reserva.cod_zona.nombre_zona }}</td>
+    <td>{{ reserva.fecha_uso }}</td>
+    <td>{{ reserva.hora_inicio }}</td>
+    <td>{{ reserva.hora_fin }}</td>
+    <td>
+        {% if reserva.estado == 'En espera' %}
+            <span class="role-badge badge-warning">
+                <i class="fas fa-clock"></i>
+                {{ reserva.estado }}
+            </span>
+        {% elif reserva.estado == 'Aprobada' %}
+            <span class="role-badge badge-success">
+                <i class="fas fa-check-circle"></i>
+                {{ reserva.estado }}
+            </span>
+        {% else %}
+            <span class="role-badge badge-danger">
+                <i class="fas fa-times-circle"></i>
+                {{ reserva.estado }}
+            </span>
+        {% endif %}
+    </td>
+    <td>{{ reserva.observacion|default:"Sin observación" }}</td>
+    <td>
+        <a href="{% url 'detalle_reserva_con_pagos' reserva.id_reserva %}" class="btn-modern">
+            <i class="fas fa-file-invoice-dollar"></i> Ver Detalle y Pagos
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="9" class="text-center">No hay reservas registradas.</td>
+</tr>
+{% endfor %}

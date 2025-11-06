@@ -23,7 +23,8 @@ import requests
 # Para WebSocket
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from app.utils_ws import enviar_noticias_ws
+from app.utils.utils_ws import enviar_noticias_ws
+from app.utils.utils_reservas import *
 
 
 @rol_requerido([3])
@@ -86,6 +87,9 @@ def gestionar_usuarios(request):
 
     
 
+# ==============================
+# ADMINISTRADOR
+# ==============================
 @rol_requerido([3])
 @login_requerido
 def gestionar_reservas(request):
@@ -95,10 +99,16 @@ def gestionar_reservas(request):
         reserva_id = request.POST.get("reserva_id")
         reserva = get_object_or_404(Reserva, pk=reserva_id)
         form = EditarReservaForm(request.POST, instance=reserva)
+
         if form.is_valid():
             form.save()
-            messages.success(request, f" Reserva {reserva.id_reserva} actualizada correctamente.")
+
+            # ✅ Notificación realtime
+            enviar_reservas_ws()
+
+            messages.success(request, f"Reserva {reserva.id_reserva} actualizada correctamente.")
             return redirect("gestionar_reservas")
+
     else:
         form = EditarReservaForm()
 
@@ -158,9 +168,6 @@ def eliminar_pago(request, pago_id):
 
 
 
-# -----------------------------------------
-# Listar, crear y editar noticias
-# -----------------------------------------
 @rol_requerido([3])
 @login_requerido
 def listar_noticias(request):
@@ -213,7 +220,6 @@ def eliminar_noticia(request, id_noticia):
 
     messages.success(request, "Noticia eliminada ")
     return redirect("listar_noticias")
-
 
 @rol_requerido([3])
 @login_requerido

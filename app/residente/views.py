@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import now
-from django.template.loader import render_to_string
+from app.utils.utils_reservas import *
 
 
 @rol_requerido([2])
@@ -17,15 +17,6 @@ from django.template.loader import render_to_string
 def panel_general_residente(request):
     return render(request, "residente/panel.html")
 
-
-
-
-@login_requerido
-@rol_requerido([2])
-def noticias_fragmento(request):
-    noticias_list = Noticias.objects.all().order_by('-fecha_publicacion')
-    html = render_to_string('residente/detalles_residente/_noticias_list.html', {'noticias': noticias_list})
-    return JsonResponse({'html': html})
 
 
 @login_requerido
@@ -91,54 +82,63 @@ def crear_reserva(request, id_zona):
         form = ReservaForm(request.POST)
 
         if form.is_valid():
-            fecha_uso = form.cleaned_data['fecha_uso']
-            hora_inicio = form.cleaned_data['hora_inicio']
-            hora_fin = form.cleaned_data['hora_fin']
+            fecha_uso = form.cleaned_data["fecha_uso"]
+            hora_inicio = form.cleaned_data["hora_inicio"]
+            hora_fin = form.cleaned_data["hora_fin"]
 
             if fecha_uso < datetime.date.today():
                 messages.error(request, "No puedes seleccionar una fecha que ya pasó.")
                 return render(request, "residente/zonas_comunes/crear_reserva.html", {
-                    "form": form,
-                    "zona": zona
+                    "form": form, "zona": zona
                 })
 
-            if zona.id_zona in [6, 12, 13] and Reserva.objects.filter(cod_zona=zona, fecha_uso=fecha_uso).exists():
+            if zona.id_zona in [6, 12, 13] and Reserva.objects.filter(
+                cod_zona=zona, fecha_uso=fecha_uso
+            ).exists():
                 messages.error(request, "Ya existe una reserva para esta fecha en la zona seleccionada.")
-            else:
-                reserva_obj = form.save(commit=False)
-                reserva_obj.cod_usuario = request.usuario
-                reserva_obj.cod_zona = zona
-                reserva_obj.estado = "En espera"
-                reserva_obj.forma_pago = "Efectivo"
+                return render(request, "residente/zonas_comunes/crear_reserva.html", {
+                    "form": form, "zona": zona
+                })
 
-                total_a_pagar = 0
+            reserva_obj = form.save(commit=False)
+            reserva_obj.cod_usuario = request.usuario
+            reserva_obj.cod_zona = zona
+            reserva_obj.estado = "En espera"
+            reserva_obj.forma_pago = "Efectivo"
+            total_a_pagar = 0
 
-                if hora_inicio and hora_fin:
-                    dummy_date = datetime.date(2000, 1, 1)
-                    inicio_dt = datetime.datetime.combine(dummy_date, hora_inicio)
-                    fin_dt = datetime.datetime.combine(dummy_date, hora_fin)
+            if hora_inicio and hora_fin:
+                dummy_date = datetime.date(2000, 1, 1)
+                inicio_dt = datetime.datetime.combine(dummy_date, hora_inicio)
+                fin_dt = datetime.datetime.combine(dummy_date, hora_fin)
 
-                    if fin_dt < inicio_dt:
-                        fin_dt += datetime.timedelta(days=1)
+                if fin_dt < inicio_dt:
+                    fin_dt += datetime.timedelta(days=1)
 
-                    duracion_minutos = (fin_dt - inicio_dt).total_seconds() / 60
+                duracion_minutos = (fin_dt - inicio_dt).total_seconds() / 60
 
-                    if zona.tipo_pago == "Por hora":
-                        total_a_pagar = (duracion_minutos / 60) * float(zona.tarifa_base)
-                    elif zona.tipo_pago == "Franja horaria":
-                        franja_minutos = 60
-                        if zona.nombre_zona == "Lavandería":
-                            franja_minutos = 90
-                        total_a_pagar = (duracion_minutos / franja_minutos) * float(zona.tarifa_base)
-                    elif zona.tipo_pago == "Evento":
-                        total_a_pagar = float(zona.tarifa_base)
+                if zona.tipo_pago == "Por hora":
+                    total_a_pagar = (duracion_minutos / 60) * float(zona.tarifa_base)
 
-                reserva_obj.valor_pago = total_a_pagar
-                reserva_obj.save()
+                elif zona.tipo_pago == "Franja horaria":
+                    franja_minutos = 60
+                    if zona.nombre_zona == "Lavandería":
+                        franja_minutos = 90
+                    total_a_pagar = (duracion_minutos / franja_minutos) * float(zona.tarifa_base)
 
-                messages.success(request, f"Reserva creada correctamente. Total a pagar: ${total_a_pagar:,.0f}")
-                request.session["mostrar_alerta_pago"] = True
-                return redirect("mis_reservas")
+                elif zona.tipo_pago == "Evento":
+                    total_a_pagar = float(zona.tarifa_base)
+
+            reserva_obj.valor_pago = total_a_pagar
+            reserva_obj.save()
+
+            # ✅ Notificar realtime a panel admin
+            enviar_reservas_ws()
+
+            messages.success(request, f"Reserva creada correctamente. Total a pagar: ${total_a_pagar:,.0f}")
+            request.session["mostrar_alerta_pago"] = True
+            return redirect("mis_reservas")
+
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -149,8 +149,7 @@ def crear_reserva(request, id_zona):
         form = ReservaForm()
 
     return render(request, "residente/zonas_comunes/crear_reserva.html", {
-        "form": form,
-        "zona": zona
+        "form": form, "zona": zona
     })
 
 
