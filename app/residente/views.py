@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from app.utils.utils_reservas import *
 
-
+#PANEL GENERAL RESIDENTE
 @rol_requerido([2])
 @login_requerido
 def panel_general_residente(request):
@@ -19,22 +19,7 @@ def panel_general_residente(request):
 
 
 
-@login_requerido
-@rol_requerido([2])
-def noticias(request):
-    """
-    Vista para mostrar las noticias del panel de residente.
-    """
-    noticias_list = Noticias.objects.all().order_by('-fecha_publicacion')  # Más recientes primero
-
-    context = {
-        'detalle': True,  # Esto habilita la sección de noticias en tu template
-        'noticias': noticias_list
-    }
-
-    return render(request, 'residente/detalles_residente/noticias.html', context)
-
-
+#DATOS DE APARTAMENTO Y TORRE DE RESIDENTE
 @rol_requerido([2])
 @login_requerido
 def detalle_residente(request):
@@ -65,6 +50,25 @@ def detalle_residente(request):
     )
 
 
+
+# NOTICIAS PARA RESIDENTE
+@login_requerido
+@rol_requerido([2])
+def noticias(request):
+    """
+    Vista para mostrar las noticias del panel de residente.
+    """
+    noticias_list = Noticias.objects.all().order_by('-fecha_publicacion')  # Más recientes primero
+
+    context = {
+        'detalle': True,  # Esto habilita la sección de noticias en tu template
+        'noticias': noticias_list
+    }
+
+    return render(request, 'residente/detalles_residente/noticias.html', context)
+
+
+# LISTAR ZONAS COMUNES
 @rol_requerido([2])
 @login_requerido
 def listar_zonas(request):
@@ -72,7 +76,7 @@ def listar_zonas(request):
     return render(request, "residente/zonas_comunes/listar_zonas.html", {"zonas": zonas})
 
 
-# Crear reserva
+# CREAR RESERVA EN ZONA COMUN
 @rol_requerido([2])
 @login_requerido
 def crear_reserva(request, id_zona):
@@ -152,7 +156,7 @@ def crear_reserva(request, id_zona):
         "form": form, "zona": zona
     })
 
-
+# LISTAR ZONAS COMUNES OCUPADAS
 @rol_requerido([2])
 @login_requerido
 def fechas_ocupadas(request, id_zona):
@@ -165,7 +169,7 @@ def fechas_ocupadas(request, id_zona):
 
     return JsonResponse({"fechas": list(reservas)})
 
-
+# LISTAR ZONAS COMUNES RESERVADAS POR EL RESIDENTE
 @rol_requerido([2])
 @login_requerido
 def mis_reservas(request):
@@ -211,7 +215,7 @@ def mis_reservas(request):
         }
     )
 
-
+# LISTAR ZONAS COMUNES - ELIMINAR RESERVA
 @rol_requerido([2])
 @login_requerido
 def eliminar_reserva(request, id_reserva):
@@ -241,6 +245,107 @@ def eliminar_reserva(request, id_reserva):
     return redirect("mis_reservas")
 
 
+# LISTAR ZONAS COMUNES - AGREGAR PAGO A RESERVA
+@rol_requerido([2])
+@login_requerido
+def agregar_pago(request, id_reserva):
+    reserva_obj = get_object_or_404(Reserva, pk=id_reserva)
+    pago_actual = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago").first()
+
+    form = None
+    editar_pago_id = request.GET.get("editar_pago")
+
+    if editar_pago_id:
+        pago_editar = get_object_or_404(PagosReserva, pk=editar_pago_id, id_reserva=reserva_obj)
+    else:
+        pago_editar = None
+
+    # ------------------- EDITAR COMPROBANTE -------------------
+    if request.method == "POST" and "guardar_edicion" in request.POST:
+        pago_editar = get_object_or_404(PagosReserva, pk=request.POST.get("pago_id"), id_reserva=reserva_obj)
+        form = PagosReservaForm(request.POST, request.FILES, instance=pago_editar)
+        if form.is_valid():
+            form.save()
+
+            # 🔥 notificar WS
+            enviar_pago_reserva_ws(reserva_obj)
+
+            messages.success(request, "El comprobante se actualizó correctamente.")
+            return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
+        else:
+            messages.error(request, "Ocurrió un error al actualizar el comprobante.")
+
+    # ------------------- SUBIR SEGUNDO COMPROBANTE -------------------
+    elif request.method == "POST":
+        if pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
+            form = PagosReservaForm(request.POST, request.FILES, instance=pago_actual)
+            if form.is_valid():
+                pago = form.save(commit=False)
+                pago.estado = False
+                pago.save()
+
+                # 🔥 notificar WS
+                enviar_pago_reserva_ws(reserva_obj)
+
+                request.session["mostrar_alerta"] = "validando_pago"
+                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
+
+        else:
+            form = PagosReservaForm(request.POST, request.FILES)
+            if form.is_valid():
+                pago = form.save(commit=False)
+                pago.id_reserva = reserva_obj
+                pago.estado = False
+                pago.save()
+
+                # 🔥 notificar WS
+                enviar_pago_reserva_ws(reserva_obj)
+
+                request.session["mostrar_alerta"] = "primer_pago"
+                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
+
+    # ------------------- GET REQUEST -------------------
+    else:
+        if pago_editar:
+            form = PagosReservaForm(instance=pago_editar)
+
+        elif pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
+            form = PagosReservaForm(instance=pago_actual)
+            form.fields["archivo_1"].widget = forms.HiddenInput()
+            form.fields["estado"].widget = forms.HiddenInput()
+            form.fields["id_reserva"].widget = forms.HiddenInput()
+            form.fields["archivo_2"].widget = forms.FileInput(attrs={"class": "form-control"})
+
+        elif pago_actual and not pago_actual.estado and pago_actual.archivo_2:
+            form = None
+
+        elif pago_actual and pago_actual.estado:
+            form = None
+
+        else:
+            form = PagosReservaForm(initial={"id_reserva": reserva_obj.id_reserva})
+            form.fields["archivo_2"].widget = forms.HiddenInput()
+            form.fields["estado"].widget = forms.HiddenInput()
+            form.fields["id_reserva"].widget = forms.HiddenInput()
+
+    pagos = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago")
+    mostrar_alerta = request.session.pop("mostrar_alerta", None)
+
+    return render(
+        request,
+        "residente/zonas_comunes/pago_reserva.html",
+        {
+            "form": form,
+            "reserva": reserva_obj,
+            "pagos": pagos,
+            "pago_actual": pago_actual,
+            "pago_editar": pago_editar,
+            "mostrar_alerta": mostrar_alerta,
+        },
+    )
+
+
+# DETALLES DE UN VEHÍCULO Y GESTIÓN DE ARCHIVOS
 @rol_requerido([2])
 @login_requerido
 def detalles(request, vehiculo_id):
@@ -287,85 +392,8 @@ def detalles(request, vehiculo_id):
     return render(request, 'residente/vehiculos/detalles.html', context)
 
 
-@rol_requerido([2])
-@login_requerido
-def agregar_pago(request, id_reserva):
-    reserva_obj = get_object_or_404(Reserva, pk=id_reserva)
-    pago_actual = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago").first()
 
-    form = None
-    editar_pago_id = request.GET.get("editar_pago")
-
-    if editar_pago_id:
-        pago_editar = get_object_or_404(PagosReserva, pk=editar_pago_id, id_reserva=reserva_obj)
-    else:
-        pago_editar = None
-
-    if request.method == "POST" and "guardar_edicion" in request.POST:
-        pago_editar = get_object_or_404(PagosReserva, pk=request.POST.get("pago_id"), id_reserva=reserva_obj)
-        form = PagosReservaForm(request.POST, request.FILES, instance=pago_editar)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "El comprobante se actualizó correctamente.")
-            return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-        else:
-            messages.error(request, "Ocurrió un error al actualizar el comprobante.")
-
-    elif request.method == "POST":
-        if pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
-            form = PagosReservaForm(request.POST, request.FILES, instance=pago_actual)
-            if form.is_valid():
-                pago = form.save(commit=False)
-                pago.estado = False
-                pago.save()
-                request.session["mostrar_alerta"] = "validando_pago"
-                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-        else:
-            form = PagosReservaForm(request.POST, request.FILES)
-            if form.is_valid():
-                pago = form.save(commit=False)
-                pago.id_reserva = reserva_obj
-                pago.estado = False
-                pago.save()
-                request.session["mostrar_alerta"] = "primer_pago"
-                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-    else:
-        if pago_editar:
-            form = PagosReservaForm(instance=pago_editar)
-        elif pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
-            form = PagosReservaForm(instance=pago_actual)
-            form.fields["archivo_1"].widget = forms.HiddenInput()
-            form.fields["estado"].widget = forms.HiddenInput()
-            form.fields["id_reserva"].widget = forms.HiddenInput()
-            form.fields["archivo_2"].widget = forms.FileInput(attrs={"class": "form-control"})
-        elif pago_actual and not pago_actual.estado and pago_actual.archivo_2:
-            form = None
-        elif pago_actual and pago_actual.estado:
-            form = None
-        else:
-            form = PagosReservaForm(initial={"id_reserva": reserva_obj.id_reserva})
-            form.fields["archivo_2"].widget = forms.HiddenInput()
-            form.fields["estado"].widget = forms.HiddenInput()
-            form.fields["id_reserva"].widget = forms.HiddenInput()
-
-    pagos = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago")
-    mostrar_alerta = request.session.pop("mostrar_alerta", None)
-
-    return render(
-        request,
-        "residente/zonas_comunes/pago_reserva.html",
-        {
-            "form": form,
-            "reserva": reserva_obj,
-            "pagos": pagos,
-            "pago_actual": pago_actual,
-            "pago_editar": pago_editar,
-            "mostrar_alerta": mostrar_alerta,
-        },
-    )
-
-
-
+# LISTA DE SORTEOS PARA RESIDENTE
 @rol_requerido([2])
 @login_requerido
 def lista_sorteos(request):
@@ -427,7 +455,7 @@ def lista_sorteos(request):
     }
     return render(request, "residente/sorteo/lista_sorteos.html", context)
 
-
+# DETALLE DE SORTEO PARA RESIDENTE
 @rol_requerido([2])
 @login_requerido
 def detalle_sorteo(request, sorteo_id):

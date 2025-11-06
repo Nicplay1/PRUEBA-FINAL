@@ -1,3 +1,15 @@
+const ws = new WebSocket(`ws://${window.location.host}/ws/pagos/{{ reserva.id_reserva }}/`);
+
+ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.html_residente) {
+        document.getElementById("tabla-reservas").innerHTML = data.html_residente;
+    }
+};
+
+
+
 // Alertas (autocierre)
 setTimeout(() => {
     document.querySelectorAll('.alert-modern').forEach(el => {

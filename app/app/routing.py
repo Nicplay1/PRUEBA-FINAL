@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path,re_path
 from .consumers import *
 
 websocket_urlpatterns = [
@@ -6,4 +6,5 @@ websocket_urlpatterns = [
     path("ws/usuarios/", AdminUserConsumer.as_asgi()),
     path("ws/noticias/", NoticiasConsumer.as_asgi()),
     path("ws/reservas/", ReservasConsumer.as_asgi()),
+    path("ws/pagos/<int:reserva_id>/", PagosConsumer.as_asgi())
 ]

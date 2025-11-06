@@ -1,4 +1,12 @@
-// detalle_reserva_pagos.js - Código corregido
+const ws = new WebSocket(`ws://${window.location.host}/ws/pagos/{{ reserva.id_reserva }}/`);
+
+ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.html_pagos) {
+        document.getElementById("tabla-pagos").innerHTML = data.html_pagos;
+    }
+};
 
 // =======================
 // Variables Globales

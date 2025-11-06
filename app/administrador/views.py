@@ -24,13 +24,13 @@ from django.utils.dateparse import parse_date
 from app.utils.utils_ws import enviar_noticias_ws
 from app.utils.utils_reservas import *
 
-
+# PANEL ADMINISTRADOR
 @rol_requerido([3])
 @login_requerido
 def panel_general_admin(request):
     return render(request, "administrador/panel.html")
 
-
+# GESTIÓN DE USUARIOS
 @rol_requerido([3])
 @login_requerido
 def gestionar_usuarios(request):
@@ -85,9 +85,7 @@ def gestionar_usuarios(request):
 
     
 
-# ==============================
-# ADMINISTRADOR
-# ==============================
+# GESTIÓN DE RESERVAS
 @rol_requerido([3])
 @login_requerido
 def gestionar_reservas(request):
@@ -114,7 +112,9 @@ def gestionar_reservas(request):
         "reservas": reservas,
         "form": form
     })
-    
+
+
+# DETALLE RESERVA CON GESTIÓN DE PAGOS    
 @rol_requerido([3])
 @login_requerido
 def detalle_reserva_con_pagos(request, id_reserva):
@@ -124,22 +124,32 @@ def detalle_reserva_con_pagos(request, id_reserva):
     form_reserva = EditarReservaForm(instance=reserva)
 
     if request.method == "POST":
-        if "reserva_id" in request.POST:  # Guardar toda la reserva
+        # ----------------- EDITAR RESERVA -----------------
+        if "reserva_id" in request.POST:
             form_reserva = EditarReservaForm(request.POST, instance=reserva)
             if form_reserva.is_valid():
                 form_reserva.save()
+
+                # 🔥 notificar residente
+                enviar_pago_reserva_ws(reserva)
+
                 messages.success(request, f"Reserva {reserva.id_reserva} actualizada correctamente.")
                 return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
-        elif "pago_id" in request.POST:  # Editar estado de pago
+
+        # ----------------- EDITAR ESTADO DE PAGO -----------------
+        elif "pago_id" in request.POST:
             pago_id = request.POST.get("pago_id")
             pago = get_object_or_404(PagosReserva, pk=pago_id)
             form_pago = EstadoPagoForm(request.POST, instance=pago)
             if form_pago.is_valid():
                 form_pago.save()
+
+                # 🔥 notificar residente
+                enviar_pago_reserva_ws(reserva)
+
                 messages.success(request, f"Pago {pago.id_pago} actualizado correctamente.")
                 return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
 
-    # Adjuntar form_estado a cada pago
     for pago in pagos:
         pago.form_estado = EstadoPagoForm(instance=pago)
 
@@ -153,13 +163,20 @@ def detalle_reserva_con_pagos(request, id_reserva):
         },
     )
 
+
 @rol_requerido([3])
 @login_requerido
 def eliminar_pago(request, pago_id):
     pago = get_object_or_404(PagosReserva, pk=pago_id)
     reserva_id = pago.id_reserva.id_reserva
+    reserva = pago.id_reserva
+
     if request.method == "POST":
         pago.delete()
+
+        # 🔥 notificar residente
+        enviar_pago_reserva_ws(reserva)
+
         messages.success(request, f"Pago {pago_id} eliminado correctamente.")
         return redirect("detalle_reserva_con_pagos", id_reserva=reserva_id)
 

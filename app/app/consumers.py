@@ -21,8 +21,6 @@ class AdminUserConsumer(AsyncWebsocketConsumer):
         }
         await self.send(text_data=json.dumps(payload))
         
-        
-
 
 class NoticiasConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -43,6 +41,32 @@ class ReservasConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard("reservas_updates", self.channel_name)
+
+    async def send_update(self, event):
+        await self.send(text_data=json.dumps(event["data"]))
+        
+        
+class PagosConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.reserva_id = self.scope["url_route"]["kwargs"]["reserva_id"]
+
+        # Grupo privado por reserva
+        await self.channel_layer.group_add(
+            f"reserva_{self.reserva_id}",
+            self.channel_name
+        )
+
+        # Grupo global (admin overview)
+        await self.channel_layer.group_add(
+            "pagos_updates",
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(f"reserva_{self.reserva_id}", self.channel_name)
+        await self.channel_layer.group_discard("pagos_updates", self.channel_name)
 
     async def send_update(self, event):
         await self.send(text_data=json.dumps(event["data"]))
