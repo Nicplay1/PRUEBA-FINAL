@@ -1,0 +1,43 @@
+{% if pagos %}
+<ul class="pago-list">
+    {% for pago in pagos %}
+    <li class="pago-item">
+        <div class="pago-header">
+            <div class="pago-date">
+                <i class="fas fa-calendar"></i> {{ pago.fecha_subida|date:"d/m/Y H:i" }}
+            </div>
+            <span class="badge-modern {% if pago.estado %}badge-success{% else %}badge-warning{% endif %}">
+                {% if pago.estado %}
+                    <i class="fas fa-check"></i> Aprobado
+                {% else %}
+                    <i class="fas fa-clock"></i> Pendiente
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="pago-actions">
+            {% if pago.archivo_1 %}
+                <a href="{{ pago.archivo_1.url }}" target="_blank" class="btn-modern btn-sm">
+                    <i class="fas fa-eye"></i> Ver Pago 1
+                </a>
+            {% endif %}
+            {% if pago.archivo_2 %}
+                <a href="{{ pago.archivo_2.url }}" target="_blank" class="btn-modern btn-sm">
+                    <i class="fas fa-eye"></i> Ver Pago 2
+                </a>
+            {% endif %}
+            {% if not pago.estado %}
+                <a href="?editar_pago={{ pago.id_pago }}" class="btn-modern btn-sm btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state">
+    <i class="fas fa-receipt"></i>
+    <div>Aún no hay comprobantes subidos.</div>
+</div>
+{% endif %}

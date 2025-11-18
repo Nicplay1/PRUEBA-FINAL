@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.timezone import now
-from app.utils.utils_reservas import *
+
 
 #PANEL GENERAL RESIDENTE
 @rol_requerido([2])
@@ -136,8 +136,6 @@ def crear_reserva(request, id_zona):
             reserva_obj.valor_pago = total_a_pagar
             reserva_obj.save()
 
-            # ✅ Notificar realtime a panel admin
-            enviar_reservas_ws()
 
             messages.success(request, f"Reserva creada correctamente. Total a pagar: ${total_a_pagar:,.0f}")
             request.session["mostrar_alerta_pago"] = True
@@ -267,8 +265,7 @@ def agregar_pago(request, id_reserva):
         if form.is_valid():
             form.save()
 
-            # 🔥 notificar WS
-            enviar_pago_reserva_ws(reserva_obj)
+         
 
             messages.success(request, "El comprobante se actualizó correctamente.")
             return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
@@ -284,8 +281,7 @@ def agregar_pago(request, id_reserva):
                 pago.estado = False
                 pago.save()
 
-                # 🔥 notificar WS
-                enviar_pago_reserva_ws(reserva_obj)
+             
 
                 request.session["mostrar_alerta"] = "validando_pago"
                 return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
@@ -298,8 +294,7 @@ def agregar_pago(request, id_reserva):
                 pago.estado = False
                 pago.save()
 
-                # 🔥 notificar WS
-                enviar_pago_reserva_ws(reserva_obj)
+            
 
                 request.session["mostrar_alerta"] = "primer_pago"
                 return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)

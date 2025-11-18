@@ -1,0 +1,139 @@
+<!-- Contenedor para scroll horizontal -->
+<div class="table-container">
+    <!-- TABLA para desktop -->
+    <table class="table table-hover align-middle">
+        <thead class="table-header-gradient">
+            <tr>
+
+                <th>Zona</th>
+                <th>Fecha de uso</th>
+                <th>Hora inicio</th>
+                <th>Hora fin</th>
+                <th>Total a Pagar</th>
+                <th>Observación</th>
+                <th>Estado</th>
+                <th>Eliminar</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+
+                <td>{{ r.cod_zona.nombre_zona }}</td>
+                <td>{{ r.fecha_uso }}</td>
+                <td>{{ r.hora_inicio|time:"H:i" }}</td>
+                <td>{{ r.hora_fin|time:"H:i" }}</td>
+
+                <!-- Total a pagar -->
+                <td>
+                    {% if r.valor_pago %}
+                        ${{ r.valor_pago|floatformat:0 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Observación -->
+                <td>
+                    {% if r.observacion %}
+                        {{ r.observacion }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Estado con colores mejorados -->
+                <td>
+                    <span class="estado-{{ r.estado|slugify }}">
+                        <i class="fas 
+                            {% if r.estado == 'Aprobada' %}fa-check-circle{% endif %}
+                            {% if r.estado == 'Rechazada' %}fa-times-circle{% endif %}
+                            {% if r.estado == 'En espera' %}fa-clock{% endif %}
+                        me-2"></i>
+                        {{ r.estado }}
+                    </span>
+                </td>
+
+                <!-- Acciones -->
+                <td>
+                    <a href="{% url 'eliminar_reserva' id_reserva=r.id_reserva %}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash me-1"></i>
+                        Eliminar
+                    </a>
+                </td> 
+                
+                <td>
+                    <a href="{% url 'agregar_pago' r.id_reserva %}" class="btn btn-detalle btn-sm">
+                        <i class="fas fa-credit-card me-1"></i>
+                        Agregar Pago
+                    </a>
+                </td>     
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="10">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x mb-3" style="color: #94a3b8;"></i>
+                        <h4 class="text-muted">No tienes reservas registradas</h4>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CARDS para mobile -->
+<div class="d-md-none">
+    {% for r in reservas %}
+    <div class="card card-reserva mb-3 shadow-sm p-2">
+        <div class="card-body">
+            <p class="mb-1"><strong>Zona:</strong> {{ r.cod_zona.nombre_zona }}</p>
+            <p class="mb-1"><strong>Fecha:</strong> {{ r.fecha_uso }}</p>
+            <p class="mb-1"><strong>Hora inicio:</strong> {{ r.hora_inicio|time:"H:i" }}</p>
+            <p class="mb-1"><strong>Hora fin:</strong> {{ r.hora_fin|time:"H:i" }}</p>
+            <p class="mb-1"><strong>Total a Pagar:</strong> 
+                {% if r.valor_pago %}
+                    ${{ r.valor_pago|floatformat:0 }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+            <p class="mb-1"><strong>Observación:</strong> {{ r.observacion|default:"-" }}</p>
+
+            <p class="mb-1">
+                <strong>Estado:</strong>
+                <span class="estado-{{ r.estado|slugify }}">
+                    <i class="fas 
+                        {% if r.estado == 'Aprobada' %}fa-check-circle{% endif %}
+                        {% if r.estado == 'Rechazada' %}fa-times-circle{% endif %}
+                        {% if r.estado == 'En espera' %}fa-clock{% endif %}
+                    me-2"></i>
+                    {{ r.estado }}
+                </span>
+            </p>
+
+            <div class="d-flex gap-2 mt-3">
+                <a href="{% url 'eliminar_reserva' id_reserva=r.id_reserva %}" 
+                   class="btn btn-danger btn-sm flex-fill">
+                    <i class="fas fa-trash me-1"></i>
+                    Eliminar
+                </a>
+                <a href="{% url 'agregar_pago' r.id_reserva %}" 
+                   class="btn btn-detalle btn-sm flex-fill">
+                    <i class="fas fa-credit-card me-1"></i>
+                    Agregar Pago
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-calendar-times fa-4x mb-3" style="color: #94a3b8;"></i>
+        <h4 class="text-muted">No tienes reservas registradas</h4>
+    </div>
+    {% endfor %}
+</div>

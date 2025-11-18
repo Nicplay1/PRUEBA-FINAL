@@ -22,7 +22,7 @@ path('sorteos/', views.sorteos_list_create, name='sorteos_list_create'),
 path('sorteo/<int:sorteo_id>/vehiculos/', views.sorteo_vehiculos, name='sorteo_vehiculos'),
 
 path("reserva/<int:id_reserva>/detalle-pagos/", views.detalle_reserva_con_pagos, name="detalle_reserva_con_pagos"),
-path("pago/<int:pago_id>/eliminar/", views.eliminar_pago, name="eliminar_pago"),
+
 
 path('administrador/menu_reporte/<int:sorteo_id>/', views.menu_reporte_sorteo, name='menu_reporte_sorteo'),
 path("reporte_ganadores/<int:sorteo_id>/", views.reporte_sorteo_pdf, name="reporte_sorteo_pdf"),

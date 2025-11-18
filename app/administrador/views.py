@@ -26,12 +26,14 @@ from reportlab.platypus import (
 import random
 from datetime import datetime
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 
 
 # Para WebSocket
-from app.utils.utils_ws import enviar_noticias_ws
-from app.utils.utils_reservas import *
+
 
 # PANEL ADMINISTRADOR
 @rol_requerido([3])
@@ -149,42 +151,23 @@ def gestionar_reservas(request):
     })
 
 
-# DETALLE RESERVA CON GESTIÓN DE PAGOS    
 @rol_requerido([3])
 @login_requerido
 def detalle_reserva_con_pagos(request, id_reserva):
     reserva = get_object_or_404(Reserva, pk=id_reserva)
     pagos = PagosReserva.objects.filter(id_reserva=reserva)
 
-    form_reserva = EditarReservaForm(instance=reserva)
+    # Instanciamos el formulario con la reserva existente
+    if request.method == "POST" and "reserva_id" in request.POST:
+        form_reserva = EditarReservaForm(request.POST, instance=reserva)
+        if form_reserva.is_valid():
+            form_reserva.save()
+            messages.success(request, f"Reserva #{reserva.id_reserva} actualizada correctamente.")
+            return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
+    else:
+        form_reserva = EditarReservaForm(instance=reserva)
 
-    if request.method == "POST":
-        # ----------------- EDITAR RESERVA -----------------
-        if "reserva_id" in request.POST:
-            form_reserva = EditarReservaForm(request.POST, instance=reserva)
-            if form_reserva.is_valid():
-                form_reserva.save()
-
-                # 🔥 notificar residente
-                enviar_pago_reserva_ws(reserva)
-
-                messages.success(request, f"Reserva {reserva.id_reserva} actualizada correctamente.")
-                return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
-
-        # ----------------- EDITAR ESTADO DE PAGO -----------------
-        elif "pago_id" in request.POST:
-            pago_id = request.POST.get("pago_id")
-            pago = get_object_or_404(PagosReserva, pk=pago_id)
-            form_pago = EstadoPagoForm(request.POST, instance=pago)
-            if form_pago.is_valid():
-                form_pago.save()
-
-                # 🔥 notificar residente
-                enviar_pago_reserva_ws(reserva)
-
-                messages.success(request, f"Pago {pago.id_pago} actualizado correctamente.")
-                return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
-
+    # Formulario para cada pago
     for pago in pagos:
         pago.form_estado = EstadoPagoForm(instance=pago)
 
@@ -197,26 +180,6 @@ def detalle_reserva_con_pagos(request, id_reserva):
             "form_reserva": form_reserva
         },
     )
-
-
-@rol_requerido([3])
-@login_requerido
-def eliminar_pago(request, pago_id):
-    pago = get_object_or_404(PagosReserva, pk=pago_id)
-    reserva_id = pago.id_reserva.id_reserva
-    reserva = pago.id_reserva
-
-    if request.method == "POST":
-        pago.delete()
-
-        # 🔥 notificar residente
-        enviar_pago_reserva_ws(reserva)
-
-        messages.success(request, f"Pago {pago_id} eliminado correctamente.")
-        return redirect("detalle_reserva_con_pagos", id_reserva=reserva_id)
-
-
-
 
 @rol_requerido([3])
 @login_requerido
@@ -231,9 +194,6 @@ def listar_noticias(request):
             noticia.cod_usuario = request.usuario
             noticia.save()
 
-            # 🔥 Notificar vía WS
-            enviar_noticias_ws()
-
             messages.success(request, "Noticia creada exitosamente ")
             return redirect("listar_noticias")
 
@@ -244,8 +204,6 @@ def listar_noticias(request):
         if form.is_valid():
             form.save()
 
-            # 🔥 Notificar vía WS
-            enviar_noticias_ws()
 
             messages.success(request, "Noticia actualizada correctamente ")
             return redirect("listar_noticias")
@@ -264,9 +222,6 @@ def listar_noticias(request):
 def eliminar_noticia(request, id_noticia):
     noticia = get_object_or_404(Noticias, id_noticia=id_noticia)
     noticia.delete()
-
-    # 🔥 Notificar vía WS
-    enviar_noticias_ws()
 
     messages.success(request, "Noticia eliminada ")
     return redirect("listar_noticias")

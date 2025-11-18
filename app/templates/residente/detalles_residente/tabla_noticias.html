@@ -1,0 +1,29 @@
+
+            <!-- Listado de Noticias -->
+            <div id="tabla-noticias">
+                {% if noticias %}
+                <div class="news-grid">
+                    {% for n in noticias %}
+                    <div class="news-card">
+                        <h3 class="news-title">
+                            <i class="fas fa-bullhorn"></i> {{ n.titulo }}
+                        </h3>
+                        <p class="news-description">{{ n.descripcion|linebreaks }}</p>
+                        <div class="news-footer">
+                            <div class="news-author">
+                                <i class="fas fa-user"></i> Publicado por: {{ n.cod_usuario.nombres }} {{ n.cod_usuario.apellidos }}
+                            </div>
+                            <div class="news-date">
+                                <i class="far fa-calendar-alt"></i> {{ n.fecha_publicacion|date:"d M Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-newspaper"></i>
+                    <div>No hay noticias publicadas.</div>
+                </div>
+                {% endif %}
+            </div>
