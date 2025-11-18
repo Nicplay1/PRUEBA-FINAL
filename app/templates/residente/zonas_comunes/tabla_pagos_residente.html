@@ -1,43 +1,146 @@
-{% if pagos %}
-<ul class="pago-list">
-    {% for pago in pagos %}
-    <li class="pago-item">
-        <div class="pago-header">
-            <div class="pago-date">
-                <i class="fas fa-calendar"></i> {{ pago.fecha_subida|date:"d/m/Y H:i" }}
-            </div>
-            <span class="badge-modern {% if pago.estado %}badge-success{% else %}badge-warning{% endif %}">
-                {% if pago.estado %}
-                    <i class="fas fa-check"></i> Aprobado
-                {% else %}
-                    <i class="fas fa-clock"></i> Pendiente
-                {% endif %}
-            </span>
-        </div>
+{% load static %}
 
-        <div class="pago-actions">
-            {% if pago.archivo_1 %}
-                <a href="{{ pago.archivo_1.url }}" target="_blank" class="btn-modern btn-sm">
-                    <i class="fas fa-eye"></i> Ver Pago 1
-                </a>
-            {% endif %}
-            {% if pago.archivo_2 %}
-                <a href="{{ pago.archivo_2.url }}" target="_blank" class="btn-modern btn-sm">
-                    <i class="fas fa-eye"></i> Ver Pago 2
-                </a>
-            {% endif %}
-            {% if not pago.estado %}
-                <a href="?editar_pago={{ pago.id_pago }}" class="btn-modern btn-sm btn-warning">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-            {% endif %}
-        </div>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<div class="empty-state">
-    <i class="fas fa-receipt"></i>
-    <div>Aún no hay comprobantes subidos.</div>
+{% with ultimo=pagos|first %}
+<div class="profile-card">
+    <h3 class="profile-title">
+        <i class="fas fa-upload"></i> Subir comprobante para la Reserva {{ reserva.id_reserva }}
+    </h3>
+
+    <div class="space-y-4">
+
+        <!-- 1️⃣ SI EL ÚLTIMO PAGO ESTÁ APROBADO -->
+        {% if ultimo and ultimo.estado %}
+            <div class="alert-modern alert-success">
+                <i class="fas fa-check-circle"></i>
+                <div>El pago fue aprobado por el administrador.</div>
+            </div>
+
+        <!-- 2️⃣ FORMULARIO DE EDICIÓN (solo mostrar archivo faltante) -->
+        {% elif pago_editar %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="guardar_edicion" value="1">
+                <input type="hidden" name="pago_id" value="{{ pago_editar.id_pago }}">
+
+                {% if not pago_editar.archivo_1 %}
+                <div class="form-group">
+                    <label>Subir Archivo 1</label>
+                    <input type="file" name="archivo_1" class="form-control mb-2" required>
+                </div>
+                {% endif %}
+
+                {% if not pago_editar.archivo_2 %}
+                <div class="form-group">
+                    <label>Subir Archivo 2</label>
+                    <input type="file" name="archivo_2" class="form-control mb-2" required>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn-modern">
+                    <i class="fas fa-save"></i> Guardar cambios
+                </button>
+            </form>
+
+        <!-- 3️⃣ NO EXISTE NINGÚN PAGO → SOLO ARCHIVO 1 -->
+        {% elif not ultimo %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="nuevo_pago" value="1">
+
+                <div class="form-group">
+                    <label>Subir comprobante (Archivo 1)</label>
+                    <input type="file" name="archivo_1" class="form-control mb-2" required>
+                </div>
+
+                <button type="submit" class="btn-modern">
+                    <i class="fas fa-save"></i> Subir Archivo 1
+                </button>
+            </form>
+
+        <!-- 4️⃣ YA EXISTE ARCHIVO 1, PERO NO ARCHIVO 2 -->
+        {% elif ultimo.archivo_1 and not ultimo.archivo_2 %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="guardar_edicion" value="1">
+                <input type="hidden" name="pago_id" value="{{ ultimo.id_pago }}">
+
+                <div class="form-group">
+                    <label>Subir comprobante (Archivo 2)</label>
+                    <input type="file" name="archivo_2" class="form-control mb-3" required>
+                </div>
+
+                <button type="submit" class="btn-modern">
+                    <i class="fas fa-save"></i> Subir Archivo 2
+                </button>
+            </form>
+
+        <!-- 5️⃣ YA SUBIÓ LOS 2 ARCHIVOS Y ESTÁ PENDIENTE -->
+        {% elif ultimo.archivo_1 and ultimo.archivo_2 and not ultimo.estado %}
+            <div class="alert-modern alert-info">
+                <i class="fas fa-hourglass-half"></i>
+                <div>Los documentos fueron enviados y están siendo validados por el administrador.</div>
+            </div>
+
+        {% endif %}
+    </div>
 </div>
-{% endif %}
+
+
+
+
+<!-- ==========================
+     COMPROBANTES SUBIDOS
+   ========================== -->
+<div class="profile-card mt-4">
+    <h3 class="profile-title">
+        <i class="fas fa-file-invoice"></i> Comprobantes Subidos
+    </h3>
+
+    {% if pagos %}
+        <ul class="pago-list">
+            {% for pago in pagos %}
+                <li class="pago-item">
+                    <div class="pago-header">
+                        <div class="pago-date">
+                            <i class="fas fa-calendar"></i>
+                            {{ pago.fecha_subida|date:"d/m/Y H:i" }}
+                        </div>
+
+                        <span class="badge-modern {% if pago.estado %}badge-success{% else %}badge-warning{% endif %}">
+                            {% if pago.estado %}
+                                <i class="fas fa-check"></i> Aprobado
+                            {% else %}
+                                <i class="fas fa-clock"></i> Pendiente
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="pago-actions">
+                        {% if pago.archivo_1 %}
+                            <a href="{{ pago.archivo_1.url }}" target="_blank" class="btn-modern btn-sm">
+                                <i class="fas fa-eye"></i> Ver Pago 1
+                            </a>
+                        {% endif %}
+                        {% if pago.archivo_2 %}
+                            <a href="{{ pago.archivo_2.url }}" target="_blank" class="btn-modern btn-sm">
+                                <i class="fas fa-eye"></i> Ver Pago 2
+                            </a>
+                        {% endif %}
+                        {% if not pago.estado %}
+                            <a href="?editar_pago={{ pago.id_pago }}" class="btn-modern btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <div>Aún no hay comprobantes subidos.</div>
+        </div>
+    {% endif %}
+</div>
+
+{% endwith %}

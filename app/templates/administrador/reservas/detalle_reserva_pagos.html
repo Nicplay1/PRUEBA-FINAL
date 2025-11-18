@@ -1,5 +1,7 @@
 {% load static %}
+
 <main class="main-content" id="mainContent">
+
     <div class="content-header">
         <h1 class="page-title">
             <i class="fas fa-calendar-check"></i>
@@ -13,64 +15,69 @@
             Volver a Reservas
         </a>
 
-        <!-- FORMULARIO DE RESERVA -->
+        <!-- FORMULARIO PARA EDITAR RESERVA -->
         <form method="POST" id="form-reserva">
             {% csrf_token %}
             <input type="hidden" name="reserva_id" value="{{ reserva.id_reserva }}">
+            
             <div class="reserva-container d-flex gap-4 flex-wrap">
 
-                <!-- Información de la reserva -->
+                <!-- Información actual de la reserva -->
                 <div class="content-card reserva-info flex-grow-1">
-                    <h3 class="card-title">
-                        <i class="fas fa-info-circle"></i> Información de la Reserva
-                    </h3>
+                    <h3 class="card-title"><i class="fas fa-info-circle"></i> Información de la Reserva</h3>
+
                     <div class="mb-3"><strong>Zona:</strong> {{ reserva.cod_zona.nombre_zona }}</div>
                     <div class="mb-3"><strong>Usuario:</strong> {{ reserva.cod_usuario.nombres }} {{ reserva.cod_usuario.apellidos }}</div>
                     <div class="mb-3"><strong>Fecha de Uso:</strong> {{ reserva.fecha_uso }}</div>
                     <div class="mb-3"><strong>Hora:</strong> {{ reserva.hora_inicio }} - {{ reserva.hora_fin }}</div>
                     <div class="mb-3"><strong>Forma de Pago:</strong> {{ reserva.forma_pago }}</div>
                     <div class="mb-3"><strong>Pago:</strong> ${{ reserva.valor_pago }}</div>
+
                     <div class="mb-3">
-                        <strong>Estado:</strong> 
-                        <span class="badge {% if reserva.estado == 'Aprobada' %}badge-success{% elif reserva.estado == 'Rechazada' %}badge-danger{% else %}badge-warning{% endif %}">
+                        <strong>Estado:</strong>
+                        <span class="badge 
+                            {% if reserva.estado == 'Aprobada' %}badge-success
+                            {% elif reserva.estado == 'Rechazada' %}badge-danger
+                            {% else %}badge-warning
+                            {% endif %}
+                        ">
                             {{ reserva.estado }}
                         </span>
                     </div>
+
                     <div class="mb-3"><strong>Observación:</strong> {{ reserva.observacion|default:"-" }}</div>
                 </div>
 
-                <!-- Formulario de edición -->
+                <!-- Formulario edición -->
                 <div class="content-card reserva-edit flex-grow-1">
-                    <h3 class="card-title">
-                        <i class="fas fa-edit"></i> Editar Reserva
-                    </h3>
+                    <h3 class="card-title"><i class="fas fa-edit"></i> Editar Reserva</h3>
+
                     {% for field in form_reserva %}
                         <div class="form-group mb-3">
                             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                             {{ field }}
                         </div>
                     {% endfor %}
+
                     <button type="submit" class="btn btn-primary mt-2">Guardar Cambios</button>
                 </div>
 
             </div>
         </form>
 
-        <!-- Pagos Asociados -->
+        <!-- PAGOS DE LA RESERVA -->
         <div class="content-card mt-4">
-            <h3 class="card-title">
-                <i class="fas fa-money-bill-wave"></i> Pagos Asociados
-            </h3>
+            <h3 class="card-title"><i class="fas fa-money-bill-wave"></i> Pagos Asociados</h3>
 
             <div id="tabla-pagos-reserva">
-                {% include "administrador/reservas/tabla_pagos_reserva.html" %}
+                {% include 'administrador/reservas/tabla_pagos_reserva.html' %}
             </div>
-            
         </div>
     </div>
 </main>
 
-<!-- WebSocket para pagos -->
+
+<!-- WEBSOCKET PARA ACTUALIZAR PAGOS EN TIEMPO REAL -->
 <script>
 (function () {
     const reservaId = "{{ reserva.id_reserva }}";
@@ -83,19 +90,21 @@
 
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
+
         if (["created", "updated", "deleted"].includes(data.action)) {
             document.getElementById("tabla-pagos-reserva").innerHTML = data.html;
         }
     };
 
     socket.onclose = function () {
-        console.log("WebSocket cerrado. Reintentando en 5 segundos...");
+        console.log("WebSocket cerrado. Reintentando...");
         setTimeout(() => location.reload(), 5000);
     };
 })();
 </script>
 
-<!-- Actualización de estado de pagos via AJAX -->
+
+<!-- CAMBIO DE ESTADO DE PAGO (AJAX) -->
 <script>
 function actualizarEstadoPago(input, pagoId) {
     const estado = input.checked ? "True" : "False";
@@ -113,4 +122,9 @@ function actualizarEstadoPago(input, pagoId) {
         })
     });
 }
+
+// Guardar reserva recarga página completa
+document.getElementById("form-reserva").addEventListener("submit", function() {
+    this.submit();
+});
 </script>

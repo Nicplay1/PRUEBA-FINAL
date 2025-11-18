@@ -247,95 +247,57 @@ def eliminar_reserva(request, id_reserva):
 @rol_requerido([2])
 @login_requerido
 def agregar_pago(request, id_reserva):
+
     reserva_obj = get_object_or_404(Reserva, pk=id_reserva)
-    pago_actual = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago").first()
+    pagos = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago")
+    pago_actual = pagos.first()
 
+    pago_editar = None
     form = None
-    editar_pago_id = request.GET.get("editar_pago")
 
+    # ---- EDITAR EXISTENTE ----
+    editar_pago_id = request.GET.get("editar_pago")
     if editar_pago_id:
         pago_editar = get_object_or_404(PagosReserva, pk=editar_pago_id, id_reserva=reserva_obj)
-    else:
-        pago_editar = None
+        if pago_editar.estado:
+            messages.error(request, "El pago ya fue aprobado. No puedes editarlo.")
+            return redirect("agregar_pago", id_reserva=id_reserva)
 
-    # ------------------- EDITAR COMPROBANTE -------------------
+    # ---- POST: EDITAR ----
     if request.method == "POST" and "guardar_edicion" in request.POST:
-        pago_editar = get_object_or_404(PagosReserva, pk=request.POST.get("pago_id"), id_reserva=reserva_obj)
+        pago_editar = get_object_or_404(PagosReserva, pk=request.POST.get("pago_id"))
+
         form = PagosReservaForm(request.POST, request.FILES, instance=pago_editar)
         if form.is_valid():
-            form.save()
+            form.save()     # ← dispara señal
+            request.session["mostrar_alerta"] = "Comprobante actualizado."
+            return redirect("agregar_pago", id_reserva=id_reserva)
 
-         
+    # ---- POST: NUEVO PAGO ----
+    if request.method == "POST" and "nuevo_pago" in request.POST:
+        if pago_actual and pago_actual.estado:
+            messages.error(request, "El administrador ya aprobó un pago. No puedes subir más.")
+            return redirect("agregar_pago", id_reserva=id_reserva)
 
-            messages.success(request, "El comprobante se actualizó correctamente.")
-            return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-        else:
-            messages.error(request, "Ocurrió un error al actualizar el comprobante.")
-
-    # ------------------- SUBIR SEGUNDO COMPROBANTE -------------------
-    elif request.method == "POST":
-        if pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
-            form = PagosReservaForm(request.POST, request.FILES, instance=pago_actual)
-            if form.is_valid():
-                pago = form.save(commit=False)
-                pago.estado = False
-                pago.save()
-
-             
-
-                request.session["mostrar_alerta"] = "validando_pago"
-                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-
-        else:
-            form = PagosReservaForm(request.POST, request.FILES)
-            if form.is_valid():
-                pago = form.save(commit=False)
-                pago.id_reserva = reserva_obj
-                pago.estado = False
-                pago.save()
-
-            
-
-                request.session["mostrar_alerta"] = "primer_pago"
-                return redirect("agregar_pago", id_reserva=reserva_obj.id_reserva)
-
-    # ------------------- GET REQUEST -------------------
-    else:
-        if pago_editar:
-            form = PagosReservaForm(instance=pago_editar)
-
-        elif pago_actual and not pago_actual.estado and not pago_actual.archivo_2:
-            form = PagosReservaForm(instance=pago_actual)
-            form.fields["archivo_1"].widget = forms.HiddenInput()
-            form.fields["estado"].widget = forms.HiddenInput()
-            form.fields["id_reserva"].widget = forms.HiddenInput()
-            form.fields["archivo_2"].widget = forms.FileInput(attrs={"class": "form-control"})
-
-        elif pago_actual and not pago_actual.estado and pago_actual.archivo_2:
-            form = None
-
-        elif pago_actual and pago_actual.estado:
-            form = None
-
-        else:
-            form = PagosReservaForm(initial={"id_reserva": reserva_obj.id_reserva})
-            form.fields["archivo_2"].widget = forms.HiddenInput()
-            form.fields["estado"].widget = forms.HiddenInput()
-            form.fields["id_reserva"].widget = forms.HiddenInput()
-
-    pagos = PagosReserva.objects.filter(id_reserva=reserva_obj).order_by("-id_pago")
-    mostrar_alerta = request.session.pop("mostrar_alerta", None)
+        form = PagosReservaForm(request.POST, request.FILES)
+        if form.is_valid():
+            pago = form.save(commit=False)
+            pago.id_reserva = reserva_obj
+            pago.estado = False
+            pago.save()      # ← dispara señal
+            request.session["mostrar_alerta"] = "Comprobante subido."
+            return redirect("agregar_pago", id_reserva=id_reserva)
 
     return render(
         request,
         "residente/zonas_comunes/pago_reserva.html",
         {
-            "form": form,
             "reserva": reserva_obj,
             "pagos": pagos,
             "pago_actual": pago_actual,
             "pago_editar": pago_editar,
-            "mostrar_alerta": mostrar_alerta,
+            "form": form,
+            "mostrar_alerta": request.session.pop("mostrar_alerta", None),
         },
     )
 

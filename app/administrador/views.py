@@ -154,31 +154,39 @@ def gestionar_reservas(request):
 @rol_requerido([3])
 @login_requerido
 def detalle_reserva_con_pagos(request, id_reserva):
+
     reserva = get_object_or_404(Reserva, pk=id_reserva)
     pagos = PagosReserva.objects.filter(id_reserva=reserva)
 
-    # Instanciamos el formulario con la reserva existente
+    # AJAX →
+    if request.method == "POST" and request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        try:
+            pago_id = request.POST.get("pago_id")
+            estado_str = request.POST.get("estado")
+            nuevo_estado = True if estado_str == "True" else False
+
+            pago = get_object_or_404(PagosReserva, pk=pago_id)
+            pago.estado = nuevo_estado
+            pago.save()   # ← dispara señal correctamente
+
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+    # FORM NORMAL
     if request.method == "POST" and "reserva_id" in request.POST:
         form_reserva = EditarReservaForm(request.POST, instance=reserva)
         if form_reserva.is_valid():
             form_reserva.save()
-            messages.success(request, f"Reserva #{reserva.id_reserva} actualizada correctamente.")
+            messages.success(request, f"Reserva #{reserva.id_reserva} actualizada.")
             return redirect("detalle_reserva_con_pagos", id_reserva=id_reserva)
     else:
         form_reserva = EditarReservaForm(instance=reserva)
 
-    # Formulario para cada pago
-    for pago in pagos:
-        pago.form_estado = EstadoPagoForm(instance=pago)
-
     return render(
         request,
         "administrador/reservas/detalle_reserva_pagos.html",
-        {
-            "reserva": reserva,
-            "pagos": pagos,
-            "form_reserva": form_reserva
-        },
+        {"reserva": reserva, "pagos": pagos, "form_reserva": form_reserva}
     )
 
 @rol_requerido([3])

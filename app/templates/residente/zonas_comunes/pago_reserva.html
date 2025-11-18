@@ -1,38 +1,7 @@
-<div class="profile-card">
-    <h3 class="profile-title">
-        <i class="fas fa-receipt"></i> Subir comprobante para la Reserva {{ reserva.id_reserva }}
+<h3 class="profile-title">
+        <i class="fas fa-file-invoice"></i> Pagos
     </h3>
-    <div class="space-y-4">
-        {% if pago_actual and pago_actual.estado %}
-            <div class="alert-modern alert-success">
-                <i class="fas fa-check-circle"></i>
-                <div>El pago fue aprobado por el administrador.</div>
-            </div>
-        {% elif mostrar_alerta %}
-            <div class="alert-modern alert-info">
-                <i class="fas fa-clock"></i>
-                <div>{{ mostrar_alerta }}</div>
-            </div>
-        {% elif form %}
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ form.as_p }}
-                </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn-modern">
-                        <i class="fas fa-save"></i> Guardar Pago
-                    </button>
-                </div>
-            </form>
-        {% else %}
-            <div class="empty-state">
-                <i class="fas fa-hourglass-half"></i>
-                <div>Ya subiste ambos comprobantes, espera validación del administrador.</div>
-            </div>
-        {% endif %}
-    </div>
-</div>
+
 
 <div class="profile-card">
     <h3 class="profile-title">
