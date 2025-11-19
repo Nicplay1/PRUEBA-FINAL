@@ -5,120 +5,898 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pago Reserva #{{ reserva.id_reserva }}</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-dark: #0f2027;
+            --primary-medium: #1a4a3a;
+            --primary-light: #2d6a4f;
+            --accent-green: #40916c;
+            --success-green: #52b788;
+            --background: #fafdf9;
+            --surface: #ffffff;
+            --text-primary: #1b2e35;
+            --text-secondary: #64748b;
+            --text-light: #f8fafc;
+            --border: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #f0f9f4 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Barra de desplazamiento específica para el sidebar */
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Sidebar moderno */
+        #sidebar {
+            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-lg);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-x: auto; 
+        }
+
+        #sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Estilo para eliminar el fondo de la imagen */
+        .logo-img {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            padding: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-img img {
+            width: 209px;
+            transition: filter 0.3s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-text {
+            color: var(--text-light);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            margin: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: var(--accent-green);
+            border-radius: 0 12px 12px 0;
+            transition: width 0.2s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active::before {
+            width: 4px;
+        }
+
+       .nav-item i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .user-section {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Contenido principal */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .content-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 2.5rem 1.5rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--primary-dark);
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0;
+        }
+
+        .page-title i {
+            color: var(--accent-green);
+            font-size: 2.2rem;
+        }
+
+        .content-body {
+            padding: 2.5rem;
+        }
+
+        /* Botón móvil mejorado */
+        .mobile-toggle {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1100;
+            background: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            display: none;
+        }
+
+        .mobile-toggle.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .mobile-toggle:hover {
+            background: var(--primary-medium);
+            transform: scale(1.05);
+        }
+
+        /* Cards con hover y zoom */
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-hover:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            border-color: var(--accent-green);
+        }
+
+        /* Botón de ver archivo */
+        .btn-ver-archivo {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-ver-archivo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-green) 100%);
+            color: white;
+        }
+
+        /* Botón de guardar */
+        .btn-guardar {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-guardar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-green) 100%);
+            color: white;
+        }
+
+        /* Botón cancelar */
+        .btn-cancelar {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-cancelar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #5a6268 0%, #6c757d 100%);
+            color: white;
+        }
+
+        /* Alertas mejoradas */
+        .alert-modern {
+            border: none;
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.1) 100%);
+            color: #166534;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+            color: #991b1b;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            color: #1e40af;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .alerts-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1200;
+            max-width: 400px;
+        }
+
+        /* Estado vacío */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 1rem;
+        }
+
+        /* MODALES MODIFICADOS */
+        /* Fondo borroso para modales */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            background-color: rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .modal-backdrop.show {
+            opacity: 1 !important;
+        }
+        
+        /* Modal de Confirmación */
+        .modal-confirm {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+        
+        .modal-confirm .modal-header {
+            border-bottom: none;
+            padding: 2rem 2rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .modal-confirm .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .modal-confirm .modal-body {
+            padding: 0 2rem 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .modal-confirm .modal-footer {
+            border-top: none;
+            padding: 1rem 2rem 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .modal-confirm .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+        
+        .modal-confirm .btn-cancel {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            border: none;
+        }
+        
+        .modal-confirm .btn-confirm {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--primary-light) 100%);
+            border: none;
+        }
+        
+        .modal-confirm .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .icon-alert {
+            font-size: 4rem;
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+        
+        /* Modal de Éxito */
+        .modal-success {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border: none;
+            animation: successAnimation 0.6s ease-out;
+        }
+        
+        @keyframes successAnimation {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .modal-success .modal-header {
+            border-bottom: none;
+            padding: 2rem 2rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .modal-success .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .modal-success .modal-body {
+            padding: 0 2rem 2rem;
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .modal-success .modal-footer {
+            display: none;
+        }
+        
+        .icon-success {
+            font-size: 4rem;
+            color: var(--success-green);
+            margin-bottom: 1rem;
+            animation: iconPulse 2s infinite;
+        }
+        
+        @keyframes iconPulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        /* Modales de archivo con header verde */
+        .modal-archivo .modal-header {
+            background: linear-gradient(135deg, var(--primary-medium) 0%, var(--accent-green) 100%);
+            color: white;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+        
+        .modal-archivo .modal-header .btn-close {
+            color: black;
+            filter: invert(1);
+        }
+        
+        .modal-archivo .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .modal-archivo .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-archivo .modal-footer {
+            border-top: none;
+            padding: 1rem 1.5rem 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex;
+            }
+
+            #sidebar {
+                transform: translateX(-100%);
+            }
+
+            #sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-header {
+                padding-left: 5rem;
+            }
+
+            .content-body {
+                padding: 1.5rem;
+            }
+
+            .alerts-container {
+                right: 1rem;
+                left: 1rem;
+                max-width: none;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-modern {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Overlay para móvil */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
-    <h2>Pago Reserva #{{ reserva.id_reserva }}</h2>
 
-    <h4>Datos de la Reserva</h4>
-    <ul class="list-group mb-3">
-        <li class="list-group-item"><strong>Usuario:</strong> {{ reserva.cod_usuario.nombres }} {{ reserva.cod_usuario.apellidos }}</li>
-        <li class="list-group-item"><strong>Zona:</strong> {{ reserva.cod_zona.nombre_zona }}</li>
-        <li class="list-group-item"><strong>Fecha de uso:</strong> {{ reserva.fecha_uso }}</li>
-        <li class="list-group-item"><strong>Hora inicio:</strong> {{ reserva.hora_inicio }}</li>
-        <li class="list-group-item"><strong>Hora fin:</strong> {{ reserva.hora_fin }}</li>
-        <li class="list-group-item"><strong>Estado:</strong> {{ reserva.estado }}</li>
-        <li class="list-group-item"><strong>Observación:</strong> {{ reserva.observacion }}</li>
-        <li class="list-group-item"><strong>Forma de pago:</strong> {{ reserva.forma_pago }}</li>
-        <li class="list-group-item"><strong>Valor pago:</strong> {{ reserva.valor_pago }}</li>
-    </ul>
-
-    <h4>Estado del Pago</h4>
-        <ul class="list-group mb-3">
-            {% if pago.estado == "Aprobado" %}
-                <li class="list-group-item text-success"><strong>Estado:</strong> {{ pago.estado }}</li>
-            {% elif pago.estado == "En espera" %}
-                <li class="list-group-item text-warning"><strong>Estado:</strong> {{ pago.estado }}</li>
-            {% elif pago.estado == "Rechazado" %}
-                <li class="list-group-item text-danger"><strong>Estado:</strong> {{ pago.estado }}</li>
-            {% endif %}
-        </ul>
-
-
-    <h4>Archivos de Pago</h4>
-    <!-- Archivo 1 -->
-    <div class="mb-3">
-        <label class="form-label"><strong>Archivo 1</strong></label>
-        {% if pago.archivo_1 %}
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <a href="{{ pago.archivo_1.url }}" target="_blank">{{ nombre_archivo_1 }}</a>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalArchivo1">
-                    <i class="bi bi-pencil-square"></i> Editar
-                </button>
+    <!-- Alertas -->
+    {% if messages %}
+    <div class="alerts-container">
+        {% for message in messages %}
+            <div class="alert-modern alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %} fade show" role="alert">
+                {% if message.tags == "success" %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif message.tags == "error" %}
+                    <i class="fas fa-times-circle"></i>
+                {% else %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+                <div>{{ message }}</div>
             </div>
-        {% else %}
-            <input type="file" name="archivo_1" class="form-control">
-        {% endif %}
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <!-- Archivo 2 -->
-    <div class="mb-3">
-        <label class="form-label"><strong>Archivo 2</strong></label>
-        {% if pago.archivo_2 %}
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <a href="{{ pago.archivo_2.url }}" target="_blank">{{ nombre_archivo_2 }}</a>
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalArchivo2">
-                    <i class="bi bi-pencil-square"></i> Editar
-                </button>
+    <!-- Botón móvil -->
+    <button class="mobile-toggle" id="toggleSidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-img">
+                    <img src="{% static 'img/LOGO.png' %}" alt="Logo">
+                </div>
+                <div class="logo-text">Panel Residente</div>
             </div>
-        {% else %}
-            <input type="file" name="archivo_2" class="form-control">
-        {% endif %}
-    </div>
-
-    <!-- Botón Guardar General -->
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-success mt-2">Guardar Cambios</button>
-    </form>
-</div>
-
-<!-- Modal Archivo 1 -->
-<div class="modal fade" id="modalArchivo1" tabindex="-1" aria-labelledby="modalArchivo1Label" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalArchivo1Label">Editar Archivo 1</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
-          <input type="file" name="archivo_1" class="form-control" required>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Gestión</div>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Reservas</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Pagos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Noticias</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-car"></i>
+                    <span>Vehículos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Sorteos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Novedades</span>
+                </a>
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-name">Usuario Actual</div>
+                <div class="user-role">Residente</div>
+            </div>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="main-content" id="mainContent">
+        <div class="content-header">
+            <h1 class="page-title">
+                <i class="fas fa-credit-card"></i>
+                Pago Reserva #{{ reserva.id_reserva }}
+            </h1>
+        </div>
+
+        <div class="content-body">
+            <div class="container mt-4" id="contenedorPago">
+                {% include "residente/zonas_comunes/tabla_pagos_residente.html" %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Confirmación Guardar Cambios -->
+    <div class="modal fade" id="confirmModalGuardar" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm">
+          <div class="modal-header">
+            <i class="fas fa-exclamation-circle icon-alert"></i>
+            <h5 class="modal-title">Confirmar Guardar Cambios</h5>
+          </div>
+          <div class="modal-body" id="confirmBodyGuardar">
+            ¿Estás seguro de que quieres guardar los cambios?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-confirm" id="confirmBtnGuardar">
+                <i class="fas fa-check"></i>
+                Sí, guardar
+            </button>
+          </div>
         </div>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
 
-<!-- Modal Archivo 2 -->
-<div class="modal fade" id="modalArchivo2" tabindex="-1" aria-labelledby="modalArchivo2Label" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalArchivo2Label">Editar Archivo 2</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="file" name="archivo_2" class="form-control" required>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+    <!-- Modal Éxito Guardar Cambios -->
+    <div class="modal fade" id="successModalGuardar" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-success">
+          <div class="modal-header">
+            <i class="fas fa-check-circle icon-success"></i>
+            <h5 class="modal-title">Cambios Guardados</h5>
+          </div>
+          <div class="modal-body" id="successBodyGuardar">
+            Los cambios se han guardado correctamente.
+          </div>
         </div>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Código del sidebar
+        document.addEventListener("DOMContentLoaded", () => {
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+                
+                // Ocultar/mostrar botón cuando el sidebar está activo
+                if (sidebar.classList.contains('active')) {
+                    toggleBtn.classList.add('hidden');
+                } else {
+                    toggleBtn.classList.remove('hidden');
+                }
+            }
+
+            toggleBtn.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Cerrar sidebar con Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            });
+
+            // Responsive automático
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                    toggleBtn.classList.remove('hidden');
+                }
+            });
+
+            // Ocultar alertas después de 4s
+            setTimeout(() => {
+                document.querySelectorAll('.alert-modern').forEach(el => {
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 300);
+                });
+            }, 4000);
+            
+            // Confirmación para guardar cambios
+            const formPrincipal = document.getElementById('formPrincipal');
+            const confirmModalGuardar = new bootstrap.Modal(document.getElementById('confirmModalGuardar'));
+            const successModalGuardar = new bootstrap.Modal(document.getElementById('successModalGuardar'));
+            
+            if (formPrincipal) {
+                formPrincipal.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    confirmModalGuardar.show();
+                });
+                
+                document.getElementById('confirmBtnGuardar').addEventListener('click', function() {
+                    formPrincipal.submit();
+                    confirmModalGuardar.hide();
+                    // Mostrar modal de éxito después de guardar
+                    setTimeout(() => {
+                        successModalGuardar.show();
+                        setTimeout(() => successModalGuardar.hide(), 2000);
+                    }, 500);
+                });
+            }
+        });
+
+        // WebSocket para actualizar en tiempo real
+        let socket = new WebSocket(
+            "ws://" + window.location.host +
+            "/ws/pago-residente/{{ request.usuario.id_usuario }}/{{ reserva.id_reserva }}/"
+        );
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.action === "refresh") {
+                document.getElementById("contenedorPago").innerHTML = data.html;
+            }
+        };
+    </script>
 </body>
 </html>

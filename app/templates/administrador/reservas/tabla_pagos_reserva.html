@@ -1,44 +1,36 @@
-<div class="pagos-card">
-    <h3 class="pagos-title">
-        <i class="fas fa-money-bill-wave"></i> Pagos Asociados
-    </h3>
+{% for pago in pagos %}
+    <div class="mb-3 p-3 border rounded info-card">
+        <p class="mb-2"><strong>Archivos:</strong></p>
+        <div class="d-flex gap-2 mb-3">
+            {% if pago.archivo_1 %}
+                <a href="{{ pago.archivo_1.url }}" target="_blank" class="btn btn-file">
+                    <i class="fas fa-eye me-1"></i> Ver Archivo 1
+                </a>
+            {% endif %}
 
-    {% if pagos %}
-    <div class="pagos-table">
-        <div class="pagos-header">
-            <div>Pago 1</div>
-            <div>Pago 2</div>
-            <div>Estado General</div>
+            {% if pago.archivo_2 %}
+                <a href="{{ pago.archivo_2.url }}" target="_blank" class="btn btn-file">
+                    <i class="fas fa-eye me-1"></i> Ver Archivo 2
+                </a>
+            {% endif %}
+
+            {% if not pago.archivo_1 and not pago.archivo_2 %}
+                <span class="text-muted">Sin archivos adjuntos</span>
+            {% endif %}
         </div>
 
-        {% for p in pagos %}
-        <div class="pagos-row">
-
-            <!-- Pago 1 -->
-            <div>
-                {% if p.archivo_1 %}
-                <a href="{{ p.archivo_1.url }}" target="_blank" class="btn-ver">
-                    <i class="fas fa-eye"></i> Ver
-                </a>
-                {% else %}
-                -
-                {% endif %}
-            </div>
-
-            <!-- Pago 2 -->
-            <div>
-                {% if p.archivo_2 %}
-                <a href="{{ p.archivo_2.url }}" target="_blank" class="btn-ver">
-                    <i class="fas fa-eye"></i> Ver
-                </a>
-                {% else %}
-                -
-                {% endif %}
-            </div>
-
-            <!-- Estado -->
-            <div class="estado-wrapper">
-                <label class="switch">
-                    <input type="checkbox"
-                           {% if p.estado %}checked{% endif %}
-                           onchange="actualizarEstadoP
+        <div class="mb-2">
+            <label for="pagos_{{ pago.id_pago }}"><strong>Estado del pago</strong></label>
+            <select name="pagos_{{ pago.id_pago }}" id="pagos_{{ pago.id_pago }}" class="form-select">
+                <option value="En espera" {% if pago.estado == 'En espera' %}selected{% endif %}>En espera</option>
+                <option value="Aprobado" {% if pago.estado == 'Aprobado' %}selected{% endif %}>Aprobado</option>
+                <option value="Rechazado" {% if pago.estado == 'Rechazado' %}selected{% endif %}>Rechazado</option>
+            </select>
+        </div>
+    </div>
+{% empty %}
+    <div class="text-center py-4">
+        <i class="fas fa-file-invoice-dollar fa-3x mb-3" style="color: #94a3b8;"></i>
+        <h5 class="text-muted">No hay pagos asociados</h5>
+    </div>
+{% endfor %}

@@ -40,3 +40,4 @@ class PagosReservaConsumer(AsyncWebsocketConsumer):
 
     async def pagos_update(self, event):
         await self.send(json.dumps(event))
+

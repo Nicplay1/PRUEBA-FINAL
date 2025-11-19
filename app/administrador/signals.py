@@ -129,4 +129,54 @@ def noticia_creada_o_editada(sender, instance, created, **kwargs):
 def noticia_eliminada(sender, instance, **kwargs):
     enviar_noticias_update("deleted")
 
+# ------------------------------
+# PAGOS
+# ------------------------------
+def enviar_pago_a_residente(instance):
+    channel_layer = get_channel_layer()
+
+    reserva = instance.id_reserva
+    usuario_id = reserva.cod_usuario.id_usuario
+
+    # Renderizar el fragmento que se actualizará
+    html = render_to_string("residente/zonas_comunes/tabla_pagos_residente.html", {
+        "reserva": reserva,
+        "pago": instance,
+        "bloqueado": instance.estado in ["Aprobado", "Rechazado"],
+        "nombre_archivo_1": instance.archivo_1.name if instance.archivo_1 else None,
+        "nombre_archivo_2": instance.archivo_2.name if instance.archivo_2 else None,
+    })
+
+    async_to_sync(channel_layer.group_send)(
+        f"pago_residente_{usuario_id}_{reserva.id_reserva}",
+        {
+            "type": "pago_residente_update",
+            "action": "refresh",
+            "html": html
+        }
+    )
+
+
+
+@receiver(post_save, sender=PagosReserva)
+def pago_creado_o_actualizado(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    reserva = instance.id_reserva
+
+    pagos = PagosReserva.objects.filter(id_reserva=reserva)
+
+    html = render_to_string("administrador/reservas/tabla_pagos_reserva.html", {
+        "pagos": pagos
+    })
+
+    async_to_sync(channel_layer.group_send)(
+        f"pagos_reserva_{reserva.id_reserva}",
+        {
+            "type": "pagos_update",
+            "action": "refresh",
+            "html": html
+        }
+    )
+    enviar_pago_a_residente(instance)
+
 

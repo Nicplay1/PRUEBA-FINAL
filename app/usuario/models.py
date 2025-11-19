@@ -10,8 +10,6 @@ class ProcesoValidacion(models.Model):
 
     def __str__(self):
         return "Activo" if self.activo else "Inactivo"
-    
-    
 
 
 class Rol(models.Model):

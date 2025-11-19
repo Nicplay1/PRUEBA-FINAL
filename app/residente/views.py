@@ -252,7 +252,14 @@ def agregar_pago(request, id_reserva):
     reserva = get_object_or_404(Reserva, pk=id_reserva, cod_usuario=request.usuario)
     pago, created = PagosReserva.objects.get_or_create(id_reserva=reserva)
 
+    # Bloquear si está aprobado o rechazado
+    bloqueado = pago.estado in ["Aprobado", "Rechazado"]
+
     if request.method == 'POST':
+        if bloqueado:
+            messages.error(request, "No puedes editar archivos porque el pago ya fue procesado.")
+            return redirect('agregar_pago', id_reserva=id_reserva)
+
         archivo_1 = request.FILES.get('archivo_1')
         archivo_2 = request.FILES.get('archivo_2')
 
@@ -271,10 +278,12 @@ def agregar_pago(request, id_reserva):
     context = {
         'reserva': reserva,
         'pago': pago,
+        'bloqueado': bloqueado,
         'nombre_archivo_1': nombre_archivo_1,
         'nombre_archivo_2': nombre_archivo_2,
     }
     return render(request, 'residente/zonas_comunes/pago_reserva.html', context)
+
 
 
 

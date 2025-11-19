@@ -135,20 +135,18 @@ def detalle_reserva_con_pagos(request, id_reserva):
     pagos = PagosReserva.objects.filter(id_reserva=reserva)
 
     if request.method == "POST":
-        # Actualizar reserva
         reserva_form = ReservaForm(request.POST, instance=reserva)
         if reserva_form.is_valid():
             reserva_form.save()
-            messages.success(request, "Reserva actualizada correctamente.")
+            messages.success(request, "Reserva actualizada.")
 
-        # Actualizar pagos
         for pago in pagos:
             estado_key = f'pagos_{pago.id_pago}'
             if estado_key in request.POST:
                 pago.estado = request.POST.get(estado_key)
-                pago.save()
-        messages.success(request, "Pagos actualizados correctamente.")
+                pago.save()  # ← dispara la señal WebSocket
 
+        messages.success(request, "Pagos actualizados.")
         return redirect('detalle_reserva_con_pagos', id_reserva=id_reserva)
 
     else:
@@ -160,6 +158,7 @@ def detalle_reserva_con_pagos(request, id_reserva):
         'pagos': pagos,
     }
     return render(request, 'administrador/reservas/detalle_reserva_pagos.html', context)
+
 
 
 
