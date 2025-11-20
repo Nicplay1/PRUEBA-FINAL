@@ -226,46 +226,25 @@ def lista_vehiculos(request):
 
 @rol_requerido([3])
 @login_requerido
-def detalle_vehiculo(request, pk):
-    vehiculo = get_object_or_404(VehiculoResidente, pk=pk)
+def detalle_vehiculo(request, vehiculo_id):
+    vehiculo = get_object_or_404(VehiculoResidente, id_vehiculo_residente=vehiculo_id)
+    residente = vehiculo.cod_usuario.detalleresidente if hasattr(vehiculo.cod_usuario, 'detalleresidente') else None
     archivos = ArchivoVehiculo.objects.filter(id_vehiculo=vehiculo)
 
-    documentos_requeridos = ['SOAT', 'Tarjeta de propiedad', 'Técnico-mecánica', 'Licencia', 'Identidad']
-    documentos_subidos = ArchivoVehiculo.objects.filter(
-        id_vehiculo=vehiculo,
-        id_tipo_archivo__tipo_documento__in=documentos_requeridos
-    ).values_list('id_tipo_archivo__tipo_documento', flat=True).distinct()
-    tiene_todos = set(documentos_requeridos).issubset(set(documentos_subidos))
-
-    proceso = ProcesoValidacion.objects.first()
-    proceso_activo = proceso.activo if proceso else False
-
-    # 🔹 IMPORTANTE: Eliminar la actualización automática aquí
-    # Ya no forzamos documentos = True automáticamente
-    # Esto permite que el administrador mantenga su elección manual
-
-    if request.method == 'POST':
-        form = VehiculoResidenteForm(request.POST, instance=vehiculo)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Estado de documentos actualizado correctamente.")
-            return redirect('detalle_vehiculo', pk=vehiculo.pk)
-        else:
-            messages.error(request, "Error al actualizar el estado de documentos.")
-    else:
-        form = VehiculoResidenteForm(instance=vehiculo)
+    if request.method == "POST":
+        # Cambiar estado de documentos
+        estado_docs = request.POST.get("documentos") == "on"
+        vehiculo.documentos = estado_docs
+        vehiculo.save()
+        messages.success(request, "Estado de documentos actualizado correctamente.")
+        return redirect('detalle_vehiculo', vehiculo_id=vehiculo_id)
 
     context = {
-        'vehiculo': vehiculo,
-        'archivos': archivos,
-        'form': form,
-        'proceso_activo': proceso_activo,
-        'tiene_todos_documentos': tiene_todos,
-        'documentos_subidos': documentos_subidos,
-        'documentos_requeridos': documentos_requeridos,
+        "vehiculo": vehiculo,
+        "residente": residente,
+        "archivos": archivos,
     }
-    return render(request, 'administrador/vehiculos/detalles_vehiculo.html', context)
-
+    return render(request, "administrador/vehiculos/detalles_vehiculo.html", context)
 
 
 

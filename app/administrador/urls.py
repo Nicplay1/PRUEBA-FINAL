@@ -13,7 +13,8 @@ path("noticias/", views.listar_noticias, name="listar_noticias"),
 path("noticias/eliminar/<int:id_noticia>/", views.eliminar_noticia, name="eliminar_noticia"),
 
 path('vehiculos/', views.lista_vehiculos, name='lista_vehiculos'),
-path('vehiculo/<int:pk>/', views.detalle_vehiculo, name='detalle_vehiculo'),
+path('vehiculos/<int:vehiculo_id>/', views.detalle_vehiculo, name='detalle_vehiculo'),
+
 path('activar_validacion/', views.activar_validacion, name='activar_validacion'),
 path('finalizar_validacion/', views.finalizar_validacion, name='finalizar_validacion'),
     

@@ -8,4 +8,6 @@ websocket_urlpatterns = [
     r"ws/pagos-reserva/(?P<reserva_id>\d+)/$",
     consumers.PagosReservaConsumer.as_asgi()
 ),
+    re_path(r"ws/vehiculos/$", consumers.VehiculosConsumer.as_asgi()),
 ]
+

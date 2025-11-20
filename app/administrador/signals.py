@@ -246,3 +246,24 @@ def sorteo_creado(sender, instance, created, **kwargs):
         # Enviar actualización a TODOS los residentes
         for usuario in Usuario.objects.filter(id_rol__nombre_rol="Residente"):
             enviar_sorteos_a_residente(usuario)
+
+
+
+
+@receiver(post_save, sender=VehiculoResidente)
+def vehiculo_creado_o_actualizado(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    vehiculos = VehiculoResidente.objects.all()
+    
+    html = render_to_string("administrador/vehiculos/tabla_vehiculos.html", {
+        "vehiculos": vehiculos
+    })
+
+    async_to_sync(channel_layer.group_send)(
+        "vehiculos_group",
+        {
+            "type": "vehiculos_update",
+            "action": "refresh",
+            "html": html,
+        }
+    )
