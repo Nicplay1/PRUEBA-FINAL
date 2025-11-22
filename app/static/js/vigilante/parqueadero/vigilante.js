@@ -1,124 +1,173 @@
-// =========================
-// Toggle Sidebar
-// =========================
-const toggleBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const modalOverlay = document.getElementById('overlay');
+// Variables globales
+let currentPagoForm = null;
 
-function toggleSidebar() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
-
-if (toggleBtn && overlay) {
-    toggleBtn.addEventListener('click', toggleSidebar);
-    overlay.addEventListener('click', toggleSidebar);
-}
-
-// Cerrar sidebar con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-        toggleSidebar();
-    }
-});
-
-// Manejo responsive automático
-function handleResize() {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-}
-
-// Inicializar manejo responsive
-handleResize();
-window.addEventListener('resize', handleResize);
-
-// =========================
-// Control del overlay para modales
-// =========================
-function showModalOverlay() {
-    if (modalOverlay) {
-        modalOverlay.style.display = 'block';
-    }
-}
-
-function hideModalOverlay() {
-    if (modalOverlay) {
-        modalOverlay.style.display = 'none';
-    }
-}
-
-function closeAllModals() {
-    // Cerrar todos los modales de Bootstrap
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        if (modalInstance) {
-            modalInstance.hide();
-        }
-    });
-    hideModalOverlay();
-}
-
-// Configurar eventos para todos los modales
-document.addEventListener('DOMContentLoaded', function() {
-    const modals = document.querySelectorAll('.modal');
-    
-    modals.forEach(modal => {
-        modal.addEventListener('show.bs.modal', function() {
-            showModalOverlay();
-        });
-        
-        modal.addEventListener('hidden.bs.modal', function() {
-            hideModalOverlay();
-        });
-    });
-
-    // Cerrar modales con tecla Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAllModals();
-        }
-    });
-});
-
-// =========================
-// Funciones específicas del código 2
-// =========================
+// Funciones para cerrar modales
 function cerrarModalResidente() {
-    const overlay = document.getElementById('overlay');
-    const modalResidente = document.getElementById('modal-residente');
+    const modalBackdrop = document.getElementById('modalBackdropResidente');
+    const modal = document.getElementById('modal-residente');
     
-    if (overlay) overlay.style.display = 'none';
-    if (modalResidente) modalResidente.style.display = 'none';
+    if (modalBackdrop) modalBackdrop.style.display = 'none';
+    if (modal) modal.style.display = 'none';
 }
 
 function closeModal() {
-    const overlay = document.getElementById('overlay');
-    const modalVisitante = document.getElementById('modal-visitante');
+    const modalBackdrop = document.getElementById('modalBackdropVisitante');
+    const modal = document.getElementById('modal-visitante');
     
-    if (overlay) overlay.style.display = 'none';
-    if (modalVisitante) modalVisitante.style.display = 'none';
+    if (modalBackdrop) modalBackdrop.style.display = 'none';
+    if (modal) modal.style.display = 'none';
 }
 
-// Cerrar modal con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (document.getElementById('overlay') && document.getElementById('overlay').style.display === 'block') {
-            cerrarModalResidente();
-            closeModal();
-        }
-    }
+// Inicialización cuando el DOM está listo
+document.addEventListener("DOMContentLoaded", () => {
+    inicializarSidebar();
+    inicializarAlertas();
+    inicializarBusqueda();
+    inicializarModalesPago();
+    inicializarWebSocket();
 });
 
-// =========================
-// Auto-dismiss alerts
-// =========================
-setTimeout(() => {
-    document.querySelectorAll('.alert-modern').forEach(el => {
-        el.classList.remove('show');
-        setTimeout(() => el.remove(), 300);
+// Función para inicializar el sidebar
+function inicializarSidebar() {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (!toggleBtn || !sidebar || !overlay) return;
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
+    }
+
+    toggleBtn.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
     });
-}, 4000);
+
+    // Responsive automático
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            if (toggleBtn) toggleBtn.classList.remove('hidden');
+        }
+    });
+}
+
+// Función para inicializar y ocultar alertas automáticamente
+function inicializarAlertas() {
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 4000);
+}
+
+// Función para inicializar la búsqueda por placa
+function inicializarBusqueda() {
+    const buscarBtn = document.getElementById('buscarBtn');
+    const placaInput = document.getElementById('placaInput');
+
+    if (!buscarBtn || !placaInput) return;
+
+    buscarBtn.addEventListener('click', function() {
+        const placa = placaInput.value.trim();
+        if (placa) {
+            window.location.href = URL_REGISTRAR + "?placa=" + placa;
+        }
+    });
+
+    // Permitir buscar con Enter
+    placaInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            buscarBtn.click();
+        }
+    });
+}
+
+// Función para inicializar los modales de confirmación de pago
+function inicializarModalesPago() {
+    const confirmModalElement = document.getElementById('confirmModal');
+    const successModalElement = document.getElementById('successModal');
+    
+    if (!confirmModalElement || !successModalElement) return;
+    
+    const confirmModal = new bootstrap.Modal(confirmModalElement);
+    const successModal = new bootstrap.Modal(successModalElement);
+
+    // Configurar evento para botones de confirmación de pago
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('confirm-pago-btn')) {
+            e.preventDefault();
+            currentPagoForm = e.target.closest('form');
+            const confirmBody = document.getElementById('confirmBody');
+            if (confirmBody) {
+                confirmBody.textContent = '¿Estás seguro de que quieres confirmar el pago?';
+            }
+            confirmModal.show();
+        }
+    });
+
+    // Configurar evento para el botón de confirmación en el modal
+    const confirmPagoBtn = document.getElementById('confirmPagoBtn');
+    if (confirmPagoBtn) {
+        confirmPagoBtn.addEventListener('click', function() {
+            if (currentPagoForm) {
+                confirmModal.hide();
+                successModal.show();
+                setTimeout(() => {
+                    currentPagoForm.submit();
+                }, 1500); // espera 1.5 segundos antes de enviar
+            }
+        });
+    }
+}
+
+// Función para inicializar WebSocket para actualización en tiempo real
+function inicializarWebSocket() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + window.location.host + '/ws/parqueadero/';
+    
+    try {
+        const parqueaderoSocket = new WebSocket(wsUrl);
+
+        parqueaderoSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.html) {
+                const container = document.getElementById('tabla-parqueadero-container');
+                if (container) {
+                    container.innerHTML = data.html;
+                }
+            }
+        };
+
+        parqueaderoSocket.onclose = function(e) {
+            console.log('Conexión WebSocket cerrada. Reconectando...');
+            setTimeout(function() {
+                // Intentar reconectar después de 3 segundos
+                location.reload();
+            }, 3000);
+        };
+
+        parqueaderoSocket.onerror = function(e) {
+            console.error('Error en WebSocket:', e);
+        };
+    } catch (error) {
+        console.error('Error al inicializar WebSocket:', error);
+    }
+}

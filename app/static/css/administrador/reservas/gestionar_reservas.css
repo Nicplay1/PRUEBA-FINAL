@@ -47,25 +47,6 @@ body {
     background: rgba(255, 255, 255, 0.5);
 }
 
-/* Barra de desplazamiento para la tabla */
-.table-modern::-webkit-scrollbar {
-    height: 6px;
-}
-
-.table-modern::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 6px;
-}
-
-.table-modern::-webkit-scrollbar-thumb {
-    background: var(--accent-green);
-    border-radius: 6px;
-}
-
-.table-modern::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-medium);
-}
-
 /* Sidebar moderno */
 #sidebar {
     background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
@@ -96,6 +77,21 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+}
+
+/* Estilo para eliminar el fondo de la imagen */
+.logo-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    padding: 8px;
+    transition: transform 0.3s ease;
+}
+
+.logo-img img {
+    width: 209px;
+    transition: filter 0.3s ease;
 }
 
 .logo-img:hover {
@@ -210,6 +206,38 @@ body {
     margin-left: 0;
 }
 
+/* Contenedor más grande */
+.report-button-large {
+    margin-top: 20px;
+    text-align: end;
+}
+
+/* Botón más grande conservando estilo */
+.btn-modern-large {
+    background: linear-gradient(135deg, var(--accent-green) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 14px 28px !important;
+    font-size: 1.1rem !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    display: inline-block;    /* ⬅ NECESARIO para que funcione el zoom y el movimiento */
+}
+
+/* Zoom + elevar arriba */
+.btn-modern-large:hover {
+    transform: scale(1.02) translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+    color: white;
+    text-decoration: none !important;
+}
+
+/* Ícono más grande */
+.btn-modern-large i {
+    font-size: 1.3rem;
+    margin-right: 8px;
+}
+
 .content-header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -232,6 +260,7 @@ body {
 
 .page-title i {
     color: var(--accent-green);
+    font-size: 2.2rem;
 }
 
 .content-body {
@@ -258,196 +287,92 @@ body {
     display: none;
 }
 
+.mobile-toggle.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
 .mobile-toggle:hover {
     background: var(--primary-medium);
     transform: scale(1.05);
 }
 
-/* Tabla moderna */
-.table-modern {
-    background: var(--surface);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    overflow-x: auto; /* Habilitamos scroll horizontal */
+/* Estilos específicos del código 2 */
+/* Tabla hover */
+.table-hover tbody tr {
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
-
-.table-modern table {
-    margin: 0;
-    border-spacing: 0;
-    width: 100%;
-}
-
-.table-modern thead {
-    background: linear-gradient(135deg, var(--primary-medium) 0%, var(--primary-light) 100%);
-}
-
-.table-modern thead th {
-    color: rgb(255, 255, 255);
-    font-weight: 600;
-    padding: 1.25rem 1.5rem;
-    border: none;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background-color: #0f2027;
-}
-
-.table-modern tbody td {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-    color: var(--text-primary);
-}
-
-.table-modern tbody tr {
-    transition: all 0.2s ease;
-}
-
-.table-modern tbody tr:hover {
-    background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
-    transform: translateX(2px);
-}
-
-.table-modern tbody tr:last-child td {
-    border-bottom: none;
-}
-
-/* Botones modernos */
-.btn-modern {
-            background: linear-gradient(135deg, var(--accent-green) 0%, var(--success-green) 100%);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: var(--shadow);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-.btn-modern:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(64, 145, 108, 0.3);
-    color: white;
-}
-
-.btn-modern:active {
-    transform: translateY(0);
-}
-
-.btn-secondary-modern {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    border: none;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-}
-
-.btn-secondary-modern:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
-    color: white;
-}
-
-/* Badges modernos */
-.role-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.025em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.badge-admin {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    color: white;
-}
-
-.badge-usuario {
-    background: linear-gradient(135deg, var(--accent-green) 0%, var(--success-green) 100%);
-    color: white;
-}
-
-.badge-editor {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-}
-
-.badge-otro {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    color: white;
-}
-
-.badge-success {
-    background: linear-gradient(135deg, var(--accent-green) 0%, var(--success-green) 100%);
-    color: white;
-}
-
-.badge-danger {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    color: white;
-}
-
-.badge-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white;
-}
-
-/* Botón eliminar */
-.btn-delete {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    border: none;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.table-hover tbody tr:hover {
+    background-color: #e9f5ff;
+    transform: scale(1.02);
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
-.btn-delete:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    color: white;
-}
-
-.btn-delete:active {
-    transform: translateY(0);
-}
-
-/* Estado vacío */
-.empty-state {
+/* Estados de reserva - MÁS INTENSOS Y LETRA BLANCA - CON BORDES MÁS REDONDOS */
+.estado-aprobada, 
+.estado-rechazada, 
+.estado-en-espera { 
+    padding: 6px 14px; 
+    border-radius: 20px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    display: inline-block;
+    min-width: 120px;
     text-align: center;
-    padding: 3rem 2rem;
-    color: var(--text-secondary);
+    white-space: nowrap;
 }
 
-.empty-state i {
-    font-size: 3rem;
-    color: var(--border);
-    margin-bottom: 1rem;
+.estado-aprobada { 
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%); 
+    color: white; 
+}
+
+.estado-rechazada { 
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); 
+    color: white; 
+}
+
+.estado-en-espera { 
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white; 
+}
+
+/* Hover */
+.estado-aprobada:hover, 
+.estado-rechazada:hover, 
+.estado-en-espera:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 8px rgba(255,255,255,0.5);
+    filter: brightness(1.1);
+}
+
+/* Cards para pantallas pequeñas - MÁS REDONDEADAS Y CON SOMBRA */
+@media (max-width: 768px) {
+    table {
+        display: none; /* Ocultamos tabla */
+    }
+    .card-reserva {
+        display: block;
+        margin-bottom: 20px;
+        border-radius: 16px; /* Más redondeado */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1); /* Sombra más pronunciada */
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease; /* Transición para el hover */
+        border: 2px solid transparent; /* Borde transparente por defecto */
+    }
+    
+    /* Efecto de zoom y borde verde al pasar el cursor */
+    .card-reserva:hover {
+        transform: scale(1.03); /* Zoom suave */
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15); /* Sombra más intensa en hover */
+        border-color: var(--accent-green); /* Borde verde al hacer hover */
+    }
+}
+
+@media (min-width: 769px) {
+    .card-reserva {
+        display: none; /* Ocultamos cards en desktop */
+    }
 }
 
 /* Alertas mejoradas */
@@ -490,37 +415,17 @@ body {
     max-width: 400px;
 }
 
-/* Modal personalizado */
-.modal-content {
-    border-radius: 16px;
-    border: none;
-    box-shadow: var(--shadow-lg);
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-secondary);
 }
 
-.modal-header {
-    background: linear-gradient(135deg, var(--accent-green) 0%, var(--success-green) 100%);
-    color: white;
-    border-radius: 16px 16px 0 0;
-    padding: 1.5rem;
-}
-
-.modal-title {
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.modal-body {
-    padding: 2rem;
-    font-size: 1.1rem;
-    color: var(--text-primary);
-}
-
-.modal-footer {
-    border-top: 1px solid var(--border);
-    padding: 1.5rem;
-    border-radius: 0 0 16px 16px;
+.empty-state i {
+    font-size: 3rem;
+    color: var(--border);
+    margin-bottom: 1rem;
 }
 
 /* Responsive */
@@ -542,26 +447,11 @@ body {
     }
 
     .content-header {
-        padding: 1.5rem;
-    }
-
-    .page-title {
-        font-size: 1.5rem;
+        padding-left: 5rem;
     }
 
     .content-body {
         padding: 1.5rem;
-    }
-
-    .table-modern {
-        border-radius: 16px;
-    }
-
-    .table-modern thead th,
-    .table-modern tbody td {
-        padding: 1rem 0.75rem;
-        font-size: 0.8rem;
-        white-space: nowrap;
     }
 
     .alerts-container {
@@ -570,54 +460,8 @@ body {
         max-width: none;
     }
     
-    
-    
-    .role-badge {
-        font-size: 0.7rem;
-        padding: 0.4rem 0.8rem;
-    }
-    
-    .modal-header, .modal-body, .modal-footer {
-        padding: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .content-header {
-        padding: 1rem;
-    }
-    
-    .content-body {
-        padding: 1rem;
-    }
-    
     .page-title {
-        font-size: 1.25rem;
-    }
-    
-    .table-modern {
-        border-radius: 12px;
-    }
-    
-    .table-modern thead th,
-    .table-modern tbody td {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.7rem;
-    }
-    
-    
-    
-    .role-badge {
-        font-size: 0.65rem;
-        padding: 0.3rem 0.6rem;
-    }
-    
-    .empty-state {
-        padding: 2rem 1rem;
-    }
-    
-    .empty-state i {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
 }
 
@@ -652,4 +496,52 @@ body {
 
 .sidebar-overlay.active {
     display: block;
+}
+
+/* Estilos para la tabla con scroll horizontal - TABLA MÁS GRANDE */
+.table-container {
+    border-radius: 16px; /* Bordes redondeados en la parte superior */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Sombra */
+    overflow-x: auto; /* Scroll horizontal */
+    background-color: white;
+    margin-bottom: 2rem;
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+/* Encabezado de tabla con degradado verde y texto blanco */
+.table-header-gradient {
+    background: linear-gradient(135deg, var(--primary-medium) 0%, var(--accent-green) 100%);
+    color: white;
+}
+
+.table-header-gradient th {
+    background-color: black;
+    color: white;
+    font-weight: 600;
+    padding: 16px 20px; /* Más padding para hacer la tabla más grande */
+    font-size: 1.05rem; /* Texto más grande */
+}
+
+/* Celdas de tabla más grandes */
+.table-hover td {
+    padding: 14px 20px; /* Más padding para hacer las celdas más grandes */
+    font-size: 1rem; /* Texto más grande */
+    vertical-align: middle;
+}
+
+/* Botón Ver Detalle */
+.btn-detalle {
+    background: linear-gradient(135deg, var(--accent-green) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-detalle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: white;
 }

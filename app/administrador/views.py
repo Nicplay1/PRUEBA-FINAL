@@ -31,6 +31,8 @@ from datetime import datetime
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from usuario.utils import enviar_correo_async
+
 
 
 
@@ -228,7 +230,10 @@ def lista_vehiculos(request):
 @login_requerido
 def detalle_vehiculo(request, vehiculo_id):
     vehiculo = get_object_or_404(VehiculoResidente, id_vehiculo_residente=vehiculo_id)
-    residente = vehiculo.cod_usuario.detalleresidente if hasattr(vehiculo.cod_usuario, 'detalleresidente') else None
+
+    # Obtener detalle residente
+    residente = DetalleResidente.objects.filter(cod_usuario=vehiculo.cod_usuario).first()
+
     archivos = ArchivoVehiculo.objects.filter(id_vehiculo=vehiculo)
 
     if request.method == "POST":
@@ -245,6 +250,7 @@ def detalle_vehiculo(request, vehiculo_id):
         "archivos": archivos,
     }
     return render(request, "administrador/vehiculos/detalles_vehiculo.html", context)
+
 
 
 
@@ -392,18 +398,17 @@ def finalizar_validacion(request):
 def sorteos_list_create(request):
     sorteos = Sorteo.objects.all().order_by('-fecha_creado')
 
-    if request.method == 'POST':
-        # Crear sorteo
-        if 'crear_sorteo' in request.POST:
-            form = SorteoForm(request.POST)
-            if form.is_valid():
-                fecha_sorteo = form.cleaned_data['fecha_inicio']
-                if fecha_sorteo < timezone.now().date():
-                    messages.error(request, "No puedes crear un sorteo en una fecha pasada.")
-                else:
-                    sorteo = form.save()
-                    messages.success(request, "Sorteo fue creado correctamente.")
-                    return redirect('sorteos_list_create')
+    if 'crear_sorteo' in request.POST:
+        form = SorteoForm(request.POST)
+        if form.is_valid():
+            fecha_sorteo = form.cleaned_data['fecha_inicio']
+            # Validación en la vista
+            if fecha_sorteo < timezone.now().date():
+                messages.error(request, "No puedes crear un sorteo en una fecha pasada.")
+            else:
+                form.save()
+                messages.success(request, "Sorteo fue creado correctamente.")
+                return redirect('sorteos_list_create')
 
         # Liberar parqueaderos propietarios
         elif 'liberar_propietarios' in request.POST:
@@ -491,7 +496,7 @@ def sorteo_vehiculos(request, sorteo_id):
                 # Enviar correo al ganador
                 if ganador_residente.cod_usuario.correo:
                     try:
-                        send_mail(
+                        enviar_correo_async(
                             subject="Ganador de sorteo - Altos de Fontibón",
                             message=(
                                 f"Estimado(a) {ganador_residente.cod_usuario.nombres} {ganador_residente.cod_usuario.apellidos},\n\n"
@@ -501,8 +506,7 @@ def sorteo_vehiculos(request, sorteo_id):
                                 "Atentamente,\nAdministración Altos de Fontibón"
                             ),
                             from_email="altosdefontibon.cr@gmail.com",
-                            recipient_list=[ganador_residente.cod_usuario.correo],
-                            fail_silently=False,
+                            recipient_list=[ganador_residente.cod_usuario.correo]
                         )
                     except Exception as e:
                         print(f"Error enviando correo: {e}")
@@ -513,7 +517,7 @@ def sorteo_vehiculos(request, sorteo_id):
                     correo_perdedor = perdedor.cod_usuario.correo
                     if correo_perdedor:
                         try:
-                            send_mail(
+                            enviar_correo_async(
                                 subject="Sorteo de parqueaderos - Altos de Fontibón",
                                 message=(
                                     f"Estimado(a) {perdedor.cod_usuario.nombres} {perdedor.cod_usuario.apellidos},\n\n"
@@ -523,8 +527,7 @@ def sorteo_vehiculos(request, sorteo_id):
                                     "Atentamente,\nAdministración Altos de Fontibón"
                                 ),
                                 from_email="altosdefontibon.cr@gmail.com",
-                                recipient_list=[correo_perdedor],
-                                fail_silently=True,
+                                recipient_list=[correo_perdedor]
                             )
                         except Exception as e:
                             print(f"Error enviando correo a perdedor: {e}")

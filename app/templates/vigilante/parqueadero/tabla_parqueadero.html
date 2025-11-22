@@ -1,0 +1,198 @@
+{% load static %}
+{% if registros %}
+<!-- TABLA para desktop - OCULTA EN MOBILE -->
+<div class="table-container d-none d-md-block">
+    <table class="table table-hover align-middle">
+        <thead class="table-header-gradient">
+            <tr>
+                <th>Nombre</th>
+                <th>Placa</th>
+                <th>Parqueadero</th>
+                <th>Hora Llegada</th>
+                <th>Hora Salida</th>
+                <th>Tiempo Total</th>
+                <th>Valor a Pagar</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in registros %}
+            <tr>
+                <td>
+                    {% if detalle.id_visitante %}
+                        {{ detalle.id_visitante.nombres }} {{ detalle.id_visitante.apellidos }}
+                    {% elif detalle.id_vehiculo_residente %}
+                        {{ detalle.id_vehiculo_residente.cod_usuario.nombres }} {{ detalle.id_vehiculo_residente.cod_usuario.apellidos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if detalle.id_visitante %}
+                        {{ detalle.id_visitante.placa }}
+                    {% elif detalle.id_vehiculo_residente %}
+                        {{ detalle.id_vehiculo_residente.placa }}
+                    {% endif %}
+                </td>
+                <td>{{ detalle.id_parqueadero.numero_parqueadero }}</td>
+                <td>{{ detalle.hora_llegada|default:"-" }}</td>
+                <td>{{ detalle.hora_salida|default:"-" }}</td>
+                <td>
+                    {% if detalle.tiempo_total_str %}
+                        {{ detalle.tiempo_total_str }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ detalle.valor_pago|default:"0" }}</td>
+                <td>
+                    {% if detalle.tipo_propietario == "Visitante" %}
+                        {% if not detalle.hora_salida %}
+                            <a href="{% url 'poner_hora_salida' detalle.id_detalle %}" class="btn-modern">
+                                <i class="fas fa-sign-out-alt"></i> Poner salida
+                            </a>
+                        {% elif detalle.valor_pago and not detalle.pago %}
+                            <form method="post" action="{% url 'realizar_pago' detalle.id_detalle %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-modern confirm-pago-btn">
+                                    <i class="fas fa-check"></i> Confirmar pago
+                                </button>
+                            </form>
+                        {% elif detalle.pago %}
+                            <span class="status-badge status-badge-pago">
+                                <i class="fas fa-check-circle"></i> Pago realizado
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        {% if detalle.hora_salida %}
+                            <span class="status-badge status-badge-salida">
+                                <i class="fas fa-sign-out-alt"></i> Salida
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-badge-entrada">
+                                <i class="fas fa-sign-in-alt"></i> Entrada
+                            </span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-table fa-4x mb-3" style="color: #94a3b8;"></i>
+                        <h4 class="text-muted">No hay registros de parqueadero</h4>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CARDS para mobile - SOLO VISIBLE EN MOBILE - CON DISEÑO IDÉNTICO AL CÓDIGO 1 -->
+<div class="cards-container-mobile">
+    {% for detalle in registros %}
+    <div class="card-parqueadero">
+        <div class="card-parqueadero-header">
+            <h5 class="card-parqueadero-title">
+                <i class="fas fa-user"></i>
+                {% if detalle.id_visitante %}
+                    {{ detalle.id_visitante.nombres }} {{ detalle.id_visitante.apellidos }}
+                {% elif detalle.id_vehiculo_residente %}
+                    {{ detalle.id_vehiculo_residente.cod_usuario.nombres }} {{ detalle.id_vehiculo_residente.cod_usuario.apellidos }}
+                {% endif %}
+            </h5>
+            <span class="card-parqueadero-badge">
+                {{ detalle.tipo_propietario|default:"-" }}
+            </span>
+        </div>
+        <div class="card-parqueadero-body">
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Placa:</span>
+                <span class="card-parqueadero-value">
+                    {% if detalle.id_visitante %}
+                        {{ detalle.id_visitante.placa }}
+                    {% elif detalle.id_vehiculo_residente %}
+                        {{ detalle.id_vehiculo_residente.placa }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Parqueadero:</span>
+                <span class="card-parqueadero-value">{{ detalle.id_parqueadero.numero_parqueadero }}</span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Hora Llegada:</span>
+                <span class="card-parqueadero-value">{{ detalle.hora_llegada|default:"-" }}</span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Hora Salida:</span>
+                <span class="card-parqueadero-value">{{ detalle.hora_salida|default:"-" }}</span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Tiempo Total:</span>
+                <span class="card-parqueadero-value">
+                    {% if detalle.tiempo_total_str %}
+                        {{ detalle.tiempo_total_str }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Valor a Pagar:</span>
+                <span class="card-parqueadero-value">{{ detalle.valor_pago|default:"0" }}</span>
+            </div>
+            
+            <div class="card-parqueadero-field">
+                <span class="card-parqueadero-label">Acciones:</span>
+                <span class="card-parqueadero-value">
+                    {% if detalle.tipo_propietario == "Visitante" %}
+                        {% if not detalle.hora_salida %}
+                            <a href="{% url 'poner_hora_salida' detalle.id_detalle %}" class="btn-modern w-100 mb-2">
+                                <i class="fas fa-sign-out-alt"></i> Poner salida
+                            </a>
+                        {% elif detalle.valor_pago and not detalle.pago %}
+                            <form method="post" action="{% url 'realizar_pago' detalle.id_detalle %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-modern w-100 confirm-pago-btn">
+                                    <i class="fas fa-check"></i> Confirmar pago
+                                </button>
+                            </form>
+                        {% elif detalle.pago %}
+                            <span class="status-badge status-badge-pago w-100">
+                                <i class="fas fa-check-circle"></i> Pago realizado
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        {% if detalle.hora_salida %}
+                            <span class="status-badge status-badge-salida w-100">
+                                <i class="fas fa-sign-out-alt"></i> Salida
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-badge-entrada w-100">
+                                <i class="fas fa-sign-in-alt"></i> Entrada
+                            </span>
+                        {% endif %}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-table fa-4x mb-3" style="color: #94a3b8;"></i>
+        <h4 class="text-muted">No hay registros de parqueadero</h4>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-table"></i>
+        <div>No hay registros de parqueadero.</div>
+    </div>
+{% endif %}

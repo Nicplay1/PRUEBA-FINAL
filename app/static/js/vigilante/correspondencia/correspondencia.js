@@ -1,78 +1,140 @@
-// correspondencia.js - TODO el JavaScript en un archivo
 
 // =========================
-// Alertas automáticas
+// Sidebar y navegación
 // =========================
-setTimeout(() => {
-    document.querySelectorAll('.alert-modern').forEach(el => {
-        el.classList.remove('show');
-        setTimeout(() => el.remove(), 300);
-    });
-}, 4000);
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-// =========================
-// Toggle Sidebar
-// =========================
-const toggleBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const modalOverlay = document.getElementById('overlay');
-
-function toggleSidebar() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
-
-if (toggleBtn && overlay) {
-    toggleBtn.addEventListener('click', toggleSidebar);
-    overlay.addEventListener('click', toggleSidebar);
-}
-
-// Cerrar sidebar con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-        toggleSidebar();
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
-});
 
-// Manejo responsive automático
-function handleResize() {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleSidebar);
     }
-}
-window.addEventListener('resize', handleResize);
-
-// =========================
-// Control del overlay para modales
-// =========================
-let openModals = 0;
-
-function showModalOverlay() {
-    openModals++;
-    if (modalOverlay) modalOverlay.style.display = 'block';
-}
-
-function hideModalOverlay() {
-    openModals--;
-    if (openModals <= 0 && modalOverlay) {
-        modalOverlay.style.display = 'none';
-        openModals = 0;
+    if (overlay) {
+        overlay.addEventListener('click', toggleSidebar);
     }
-}
 
-function closeAllModals() {
-    // Cerrar todos los modales de Bootstrap
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        if (modalInstance) {
-            modalInstance.hide();
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            toggleSidebar();
         }
     });
-    hideModalOverlay();
-}
+
+    // Responsive automático
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            if (toggleBtn) toggleBtn.classList.remove('hidden');
+        }
+    });
+
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 4000);
+});
+
+
+
+
+// =========================
+// Funcionalidades del Código 2
+// =========================
+
+// Configuración de URLs
+window.DJANGO_URLS = {
+    buscarPaquete: "{% url 'buscar_paquete' %}"
+};
+
+// WebSocket para actualización en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + window.location.host + '/ws/paquetes/';
+    
+    const paquetesSocket = new WebSocket(wsUrl);
+
+    paquetesSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.html) {
+            document.getElementById('tabla-paquetes-container').innerHTML = data.html;
+            // Re-asignar eventos a los botones después de actualizar
+            asignarEventosEntrega();
+        }
+    };
+
+    paquetesSocket.onclose = function(e) {
+        console.log('Conexión WebSocket cerrada. Reconectando...');
+        setTimeout(function() {
+            // Intentar reconectar después de 3 segundos
+            location.reload();
+        }, 3000);
+    };
+
+    paquetesSocket.onerror = function(e) {
+        console.error('Error en WebSocket:', e);
+    };
+
+    // Asignar eventos a los formularios para cerrar modales después de enviar
+    const formRegistro = document.getElementById('formRegistroPaquete');
+    const formEntrega = document.getElementById('formEntregaPaquete');
+
+    if (formRegistro) {
+        formRegistro.addEventListener('submit', function() {
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalRegistroPaquete'));
+                if (modal) modal.hide();
+            }, 1000);
+        });
+    }
+
+    if (formEntrega) {
+        formEntrega.addEventListener('submit', function() {
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalEntregaPaquetes'));
+                if (modal) modal.hide();
+            }, 1000);
+        });
+    }
+
+    // Función para asignar eventos a los botones de entrega
+    function asignarEventosEntrega() {
+        const botonesEntrega = document.querySelectorAll('.registrar-entrega-btn');
+        botonesEntrega.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const paqueteId = this.getAttribute('data-id');
+                document.querySelector('#formEntregaPaquete input[name="id_paquete"]').value = paqueteId;
+            });
+        });
+    }
+
+    // Asignar eventos iniciales
+    asignarEventosEntrega();
+    
+    // Inicializar búsqueda de paquetes
+    inicializarBusqueda();
+    
+    // Inicializar modal de entrega
+    inicializarModalEntrega();
+    
+    console.log('✅ JavaScript de correspondencia cargado correctamente');
+});
 
 // =========================
 // Búsqueda de Paquetes
@@ -105,11 +167,11 @@ function inicializarBusqueda() {
                             <td>${p.fecha_recepcion}</td>
                             <td>${p.vigilante_recepcion}</td>
                             <td>
-                                <button class="btn-modern"
+                                <button class="btn-modern registrar-entrega-btn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalEntregaPaquetes"
                                         data-id="${p.id}">
-                                    Registrar entrega
+                                     <i class="fas fa-truck"></i> Registrar Entrega
                                 </button>
                             </td>
                         `;
@@ -150,34 +212,3 @@ function inicializarModalEntrega() {
         });
     }
 }
-
-// =========================
-// Inicialización General
-// =========================
-document.addEventListener('DOMContentLoaded', function() {
-    // Configurar eventos para todos los modales
-    const modals = document.querySelectorAll('.modal');
-    
-    modals.forEach(modal => {
-        modal.addEventListener('show.bs.modal', function() {
-            showModalOverlay();
-        });
-        
-        modal.addEventListener('hidden.bs.modal', function() {
-            hideModalOverlay();
-        });
-    });
-
-    // Cerrar modales con tecla Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAllModals();
-        }
-    });
-
-    // Inicializar funcionalidades
-    inicializarBusqueda();
-    inicializarModalEntrega();
-
-    console.log('✅ JavaScript de correspondencia cargado correctamente');
-});

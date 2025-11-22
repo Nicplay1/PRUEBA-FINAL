@@ -1,169 +1,127 @@
-// static/js/administrador/usuarios/gestionar_usuarios.js
-(function () {
+// Variables globales
+const buscarInput = document.getElementById("buscar");
+const tablaDiv = document.getElementById("tablaUsuarios");
+const csrftoken = document.querySelector('meta[name="csrf-token"]').content;
+const clearBtn = document.getElementById("clearInput");
 
-    // ---- ELEMENTOS PRINCIPALES ----
-    const resultadosDiv = document.getElementById("resultados-usuarios");
-    const searchInput = document.querySelector(".search-input");
-    const notificaciones = document.getElementById("notificaciones");
-    const userCountEl = document.getElementById("userCount");
+const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+const successModal = new bootstrap.Modal(document.getElementById('successModal'));
 
-    // Modal
-    const confirmationModal = document.getElementById('confirmationModal');
-    const userNameModal = document.getElementById('userNameModal');
-    const roleNameModal = document.getElementById('roleNameModal');
-    const cancelChangeBtn = document.getElementById('cancelChange');
-    const confirmChangeBtn = document.getElementById('confirmChange');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    let currentForm = null;
+let currentSelect = null;
 
-    // URL gestion
-    const gestionarUsuariosUrl = document.body.dataset.gestionarUsuariosUrl;
+// Función para activar los select de rol
+function activarSelects() {
+    document.querySelectorAll(".rol-select").forEach(select => {
+        select.removeEventListener("change", select._listener || (() => {}));
 
-    // ---- FUNCIONES ÚTILES ----
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-
-    // ---- WEBSOCKET ----
-    const loc = window.location;
-    const wsScheme = (loc.protocol === "https:") ? "wss" : "ws";
-    const wsUrl = wsScheme + "://" + loc.host + "/ws/usuarios/";
-    let socket = null;
-
-    function conectarWS() {
-        socket = new WebSocket(wsUrl);
-
-        socket.onopen = () => console.log("✅ WebSocket de usuarios conectado");
-
-        socket.onmessage = function (event) {
-            try {
-                const data = JSON.parse(event.data);
-
-                if (data.html && resultadosDiv) {
-                    resultadosDiv.innerHTML = data.html;
-                    bindRoleForms();
-                }
-
-                if (data.count !== null && userCountEl) {
-                    userCountEl.innerHTML = `<i class="fas fa-users"></i> Total: ${data.count} usuarios`;
-                }
-
-                if (data.mensaje) showNotification(data.mensaje);
-
-            } catch (err) {
-                console.error("Error parseando mensaje WS:", err);
-            }
+        const listener = function () {
+            currentSelect = this;
+            const nombreUsuario = this.closest("tr, .card-usuario").querySelector(".nombre-usuario").textContent;
+            document.getElementById("confirmBody").textContent =
+                `¿Deseas cambiar el rol de ${nombreUsuario}?`;
+            confirmModal.show();
         };
 
-        socket.onclose = e => {
-            console.warn("❌ WebSocket cerrado — reconectando en 3s", e.reason);
-            setTimeout(conectarWS, 3000);
-        };
-        socket.onerror = err => socket.close();
-    }
+        select.addEventListener("change", listener);
+        select._listener = listener;
+    });
+}
 
-    // ---- NOTIFICACIONES ----
-    function showNotification(text) {
-        if (!notificaciones) return;
+// Inicializar selects
+activarSelects();
 
-        const div = document.createElement("div");
-        div.className = "alert-modern alert-success";
-        div.innerHTML = `
-            <i class="fas fa-check-circle"></i> ${text}
-        `;
-        notificaciones.appendChild(div);
+// Confirmar cambio de rol
+document.getElementById("confirmBtn").addEventListener("click", function () {
+    if (!currentSelect) return;
 
+    const usuario_id = currentSelect.dataset.user;
+    const nuevo_rol = currentSelect.value;
+
+    fetch("", {
+        method: "POST",
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrftoken,
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+        },
+        body: new URLSearchParams({
+            usuario_id: usuario_id,
+            id_rol: nuevo_rol
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById("successBody").textContent = data.message;
+        successModal.show();
+        currentSelect = null;
+        
+        // Cerrar automáticamente después de 2 segundos
         setTimeout(() => {
-            div.classList.remove('show');
-            setTimeout(() => div.remove(), 300);
-        }, 4000);
+            successModal.hide();
+        }, 2000);
+    });
+
+    confirmModal.hide();
+});
+
+// Búsqueda AJAX
+buscarInput.addEventListener("keyup", function () {
+    const query = this.value.trim();
+
+    // Mostrar X si hay texto y agregar clase para borde verde
+    if (query) {
+        clearBtn.style.display = "block";
+        buscarInput.classList.add('has-content');
+    } else {
+        clearBtn.style.display = "none";
+        buscarInput.classList.remove('has-content');
     }
 
-    // ---- FORMULARIOS CAMBIO ROL ----
-    function bindRoleForms() {
-        document.querySelectorAll(".role-form").forEach(form => {
-            const changeBtn = form.querySelector(".change-role-btn");
-            if (!changeBtn || changeBtn.dataset.bound) return;
-            changeBtn.dataset.bound = "true";
+    fetch(`?q=${encodeURIComponent(query)}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(res => res.text())
+    .then(html => {
+        tablaDiv.innerHTML = html;
+        activarSelects();
+    });
+});
 
-            changeBtn.addEventListener("click", function () {
-                const userName = form.getAttribute('data-user-name');
-                const roleSelect = form.querySelector('select[name="id_rol"]');
-                const roleName = roleSelect.options[roleSelect.selectedIndex].textContent;
+// Limpiar input con la X
+clearBtn.addEventListener("click", () => {
+    buscarInput.value = "";
+    clearBtn.style.display = "none";
+    buscarInput.classList.remove('has-content');
 
-                userNameModal.textContent = userName;
-                roleNameModal.textContent = roleName;
+    fetch(`?q=`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(res => res.text())
+    .then(html => {
+        tablaDiv.innerHTML = html;
+        activarSelects();
+    });
 
-                currentForm = form;
-                confirmationModal.classList.add('active');
-            });
-        });
+    buscarInput.focus();
+});
+
+// WebSocket para refresco en tiempo real
+const loc = window.location;
+const wsStart = loc.protocol === "https:" ? "wss://" : "ws://";
+const socket = new WebSocket(wsStart + loc.host + "/ws/usuarios/");
+
+socket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const buscando = buscarInput.value.trim() !== "";
+
+    if (data.action === "refresh" && !buscando) {
+        tablaDiv.innerHTML = data.html;
+        activarSelects();
     }
+};
 
-    // Confirmar en modal
-    confirmChangeBtn.addEventListener("click", function () {
-        if (!currentForm) return;
-
-        const formData = new FormData(currentForm);
-        loadingIndicator.classList.add('active');
-
-        fetch(gestionarUsuariosUrl, {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": csrftoken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            resultadosDiv.innerHTML = data.html;
-            confirmationModal.classList.remove('active');
-            loadingIndicator.classList.remove('active');
-
-            bindRoleForms();
-            if (data.mensaje) showNotification(data.mensaje);
-
-        })
-        .catch(() => {
-            loadingIndicator.classList.remove('active');
-            alert("Error al cambiar el rol.");
-        });
-
-        currentForm = null;
-    });
-    cancelChangeBtn.addEventListener("click", function () {
-        confirmationModal.classList.remove('active');
-        currentForm = null;
-    });
-
-    // ---- BÚSQUEDA AJAX ----
-    searchInput.addEventListener("keyup", function () {
-        const query = searchInput.value;
-
-        fetch(`${gestionarUsuariosUrl}?q=${encodeURIComponent(query)}`, {
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-        })
-        .then(r => r.json())
-        .then(data => {
-            resultadosDiv.innerHTML = data.html;
-            bindRoleForms();
-        });
-    });
-
-    // ---- SIDEBAR ----
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
@@ -171,25 +129,39 @@
     function toggleSidebar() {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
 
     toggleBtn.addEventListener('click', toggleSidebar);
     overlay.addEventListener('click', toggleSidebar);
 
-    window.addEventListener('keydown', e => {
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             toggleSidebar();
         }
     });
+
+    // Responsive automático
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
+            toggleBtn.classList.remove('hidden');
         }
     });
 
-    // ---- INICIALIZACIÓN ----
-    bindRoleForms();
-    conectarWS();
-
-})();
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 4000);
+});

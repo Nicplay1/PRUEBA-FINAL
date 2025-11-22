@@ -225,14 +225,14 @@ def eliminar_reserva(request, id_reserva):
         return redirect("mis_reservas")
 
     if reserva_obj.estado != "En espera":
-        messages.error(request, f"No puedes eliminar la reserva {id_reserva} porque ya fue {reserva_obj.estado.lower()}.")
+        messages.error(request, f"No puedes eliminar la reserva porque ya fue {reserva_obj.estado.lower()}.")
         if request.usuario.id_rol.id_rol == 3:
             return redirect("gestionar_reservas")
         return redirect("mis_reservas")
 
-    if request.method == "POST":
+    if request.method in ["POST", "GET"]:
         reserva_obj.delete()
-        messages.success(request, f"Reserva {id_reserva} eliminada correctamente.")
+        messages.success(request, f"Reserva eliminada correctamente.")
 
         if request.usuario.id_rol.id_rol == 3:
             return redirect("gestionar_reservas")

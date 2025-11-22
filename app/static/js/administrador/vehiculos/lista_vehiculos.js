@@ -1,43 +1,61 @@
-// Manejo del sidebar
-const toggleBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-function toggleSidebar() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
+    }
 
-if (toggleBtn && overlay) {
     toggleBtn.addEventListener('click', toggleSidebar);
     overlay.addEventListener('click', toggleSidebar);
-}
 
-// Cerrar sidebar con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-        toggleSidebar();
-    }
-});
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
+    });
 
-// Manejo responsive automático
-function handleResize() {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-}
-window.addEventListener('resize', handleResize);
+    // Responsive automático
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            toggleBtn.classList.remove('hidden');
+        }
+    });
 
-// Alertas automáticas (desaparecen después de 4 segundos)
-document.addEventListener('DOMContentLoaded', function () {
-    const alerts = document.querySelectorAll('.alert-modern');
-    if (alerts.length > 0) {
-        setTimeout(() => {
-            alerts.forEach(alert => {
-                alert.classList.remove('show');
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 4000);
-    }
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 4000);
+
+    // WebSocket para vehículos
+    const vehiculosSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/vehiculos/'
+    );
+
+    vehiculosSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if(data.html){
+            document.getElementById('tabla-vehiculos').innerHTML = data.html;
+        }
+    };
+
+    vehiculosSocket.onclose = function(e) {
+        console.error('WebSocket de Vehículos cerrado inesperadamente.');
+    };
 });

@@ -1,125 +1,180 @@
-// =========================
-// Toggle Sidebar
-// =========================
-const toggleBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const modalOverlay = document.getElementById('overlay');
+// =====================================================
+//  CONFIGURACIÓN GLOBAL (Se llenará desde template)
+// =====================================================
 
-function toggleSidebar() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
+// Estas variables se cargan desde el HTML usando script inline.
+let DJANGO_URLS = window.DJANGO_URLS || {};
+let CSRF_TOKEN = window.CSRF_TOKEN || "";
 
-if (toggleBtn && overlay) {
-    toggleBtn.addEventListener('click', toggleSidebar);
-    overlay.addEventListener('click', toggleSidebar);
-}
+// =====================================================
+// SIDEBAR + ALERTAS
+// =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-// Cerrar sidebar con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-        toggleSidebar();
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
-});
 
-// Manejo responsive automático
-function handleResize() {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-}
-window.addEventListener('resize', handleResize);
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+    if (overlay) overlay.addEventListener('click', toggleSidebar);
 
-// =========================
-// Control del overlay para modales
-// =========================
-function showModalOverlay() {
-    modalOverlay.style.display = 'block';
-}
-
-function hideModalOverlay() {
-    modalOverlay.style.display = 'none';
-}
-
-function closeAllModals() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        if (modalInstance) {
-            modalInstance.hide();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            toggleSidebar();
         }
     });
-    hideModalOverlay();
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    const modals = document.querySelectorAll('.modal');
-    
-    modals.forEach(modal => {
-        modal.addEventListener('show.bs.modal', showModalOverlay);
-        modal.addEventListener('hidden.bs.modal', hideModalOverlay);
-    });
-
-    // Cerrar modales con tecla Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAllModals();
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            toggleBtn.classList.remove('hidden');
         }
     });
-});
 
-// =========================
-// Funcionalidad Ajax (Código 2)
-// =========================
-$(document).ready(function () {
-
-    // Limpiar modal al cerrarlo
-    $("#entregaModal").on("hidden.bs.modal", function () {
-        $("#registros-container").html("");
-        $("#form-filtrar")[0].reset();
-    });
-
-    // Filtrar registros
-    $("#form-filtrar").submit(function (e) {
-        e.preventDefault();
-        $.ajax({
-            type: "POST",
-            url: URL_REGISTRAR_ENTREGA, // ✅ Usa la variable global
-            data: $(this).serialize(),
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-            success: function (response) {
-                $("#registros-container").html(response.html);
-            },
+    // Ocultar alertas automáticas
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
         });
-    });
+    }, 4000);
+});
 
-    // Registrar entrega desde tabla
-    $(document).on("click", ".btn-entregar", function () {
-        var id_corres = $(this).data("idcorres");
-        var id_res = $(this).data("idres");
+// =====================================================
+// WEBSOCKET PARA ACTUALIZACIÓN EN TIEMPO REAL
+// =====================================================
+document.addEventListener('DOMContentLoaded', function () {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + window.location.host + '/ws/correspondencia/';
+    const correspondenciaSocket = new WebSocket(wsUrl);
 
-        $.ajax({
-            type: "POST",
-            url: URL_REGISTRAR_ENTREGA, // ✅ Usa la variable global
-            data: {
-                accion: "registrar_entrega",
-                id_correspondencia: id_corres,
-                id_residente: id_res,
-                csrfmiddlewaretoken: CSRF_TOKEN, // ✅ Token global
-            },
-            success: function (response) {
-                if (response.success) {
-                    var toast = `
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            Entrega registrada correctamente
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>`;
-                    $("#alert-container").append(toast);
-                    $("#form-filtrar").submit(); // refresca tabla
+    correspondenciaSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        if (data.html) {
+            document.getElementById('correspondencia-body').innerHTML = data.html;
+            actualizarCardsCorrespondencia();
+        }
+    };
+
+    correspondenciaSocket.onclose = function () {
+        console.log('WebSocket cerrado — reconectando en 3s');
+        setTimeout(() => location.reload(), 3000);
+    };
+
+    inicializarFiltrado();
+
+    console.log('JS de correspondencia cargado correctamente');
+});
+
+// =====================================================
+// FILTRAR RESIDENTE
+// =====================================================
+function inicializarFiltrado() {
+    const formFiltrar = document.getElementById("form-filtrar");
+    const registrosContainer = document.getElementById("registros-container");
+
+    if (formFiltrar) {
+        formFiltrar.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(formFiltrar);
+
+            try {
+                const response = await fetch(DJANGO_URLS.registrarEntrega, {
+                    method: "POST",
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.html && registrosContainer) {
+                    registrosContainer.innerHTML = data.html;
                 }
-            },
+            } catch (error) {
+                registrosContainer.innerHTML = '<div class="alert alert-danger">Error al filtrar residentes</div>';
+            }
         });
+    }
+
+    // ENTREGAR DESDE TABLA
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('btn-entregar')) {
+            registrarEntrega(
+                e.target.getAttribute('data-idcorres'),
+                e.target.getAttribute('data-idres')
+            );
+        }
     });
-});
+
+    // Limpiar modal al cerrar
+    const entregaModal = document.getElementById('entregaModal');
+    if (entregaModal) {
+        entregaModal.addEventListener('hidden.bs.modal', function () {
+            if (registrosContainer) registrosContainer.innerHTML = "";
+            if (formFiltrar) formFiltrar.reset();
+        });
+    }
+}
+
+// =====================================================
+// REGISTRAR ENTREGA
+// =====================================================
+function registrarEntrega(idCorres, idRes) {
+    const formData = new FormData();
+    formData.append('accion', 'registrar_entrega');
+    formData.append('id_correspondencia', idCorres);
+    formData.append('id_residente', idRes);
+    formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+
+    fetch(DJANGO_URLS.registrarEntrega, {
+        method: "POST",
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+
+                if (!document.getElementById('alert-container')) {
+                    const div = document.createElement('div');
+                    div.id = 'alert-container';
+                    document.body.appendChild(div);
+                }
+
+                const alert = document.createElement('div');
+                alert.className = 'alert-modern alert-success';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <div>Entrega registrada correctamente</div>
+                `;
+
+                document.getElementById('alert-container').appendChild(alert);
+
+                const formFiltrar = document.getElementById('form-filtrar');
+                if (formFiltrar) formFiltrar.dispatchEvent(new Event('submit'));
+
+                setTimeout(() => alert.remove(), 4000);
+            }
+        })
+        .catch(error => {
+            console.error('Error al registrar entrega:', error);
+        });
+}
+
+// =====================================================
+// ACTUALIZAR CARDS CORRESPONDENCIA
+// =====================================================
+function actualizarCardsCorrespondencia() {
+    console.log('Actualizando cards de correspondencia...');
+}

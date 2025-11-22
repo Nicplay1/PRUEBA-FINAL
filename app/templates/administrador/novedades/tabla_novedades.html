@@ -1,0 +1,104 @@
+{% load static %}
+<!-- Contenedor para scroll horizontal -->
+<div class="table-container">
+    <!-- TABLA para desktop -->
+    <table class="table table-hover align-middle">
+        <thead class="table-header-gradient">
+            <tr>
+                <th>ID</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Foto</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for novedad in novedades %}
+            <tr>
+                <td class="fw-bold">{{ novedad.id_novedad }}</td>
+                <td>{{ novedad.descripcion }}</td>
+                <td>
+                    {% if novedad.id_visitante %}
+                        <span class="badge-visitante">
+                            <i class="fas fa-user"></i> Visitante
+                        </span>
+                    {% elif novedad.id_paquete %}
+                        <span class="badge-paquete">
+                            <i class="fas fa-box"></i> Paquete
+                        </span>
+                    {% else %}
+                        <span class="badge-otro">
+                            <i class="fas fa-question"></i> Otro
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if novedad.foto %}
+                        <a href="{{ novedad.foto.url }}" target="_blank" class="btn btn-modern btn-sm">
+                            <i class="fas fa-eye"></i> Ver Foto
+                        </a>
+                    {% else %}
+                        <span class="text-muted">Sin foto</span>
+                    {% endif %}
+                </td>
+                <td>{{ novedad.fecha|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-clipboard-list fa-4x mb-3" style="color: #94a3b8;"></i>
+                        <h4 class="text-muted">No hay novedades registradas</h4>
+                        <p class="text-muted">No se encontraron novedades con los filtros aplicados.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CARDS para mobile -->
+<div class="d-md-none">
+    {% for novedad in novedades %}
+    <div class="card card-novedad mb-3 shadow-sm p-2">
+        <div class="card-body">
+            <h5 class="card-title">Novedad #{{ novedad.id_novedad }}</h5>
+            <p class="mb-1"><strong>Descripción:</strong> {{ novedad.descripcion }}</p>
+            <p class="mb-1">
+                <strong>Tipo:</strong>
+                {% if novedad.id_visitante %}
+                    <span class="badge-visitante">
+                        <i class="fas fa-user"></i> Visitante
+                    </span>
+                {% elif novedad.id_paquete %}
+                    <span class="badge-paquete">
+                        <i class="fas fa-box"></i> Paquete
+                    </span>
+                {% else %}
+                    <span class="badge-otro">
+                        <i class="fas fa-question"></i> Otro
+                    </span>
+                {% endif %}
+            </p>
+            <p class="mb-1">
+                <strong>Foto:</strong>
+                {% if novedad.foto %}
+                    <a href="{{ novedad.foto.url }}" target="_blank" class="btn btn-modern btn-sm">
+                        <i class="fas fa-eye"></i> Ver Foto
+                    </a>
+                {% else %}
+                    <span class="text-muted">Sin foto</span>
+                {% endif %}
+            </p>
+            <p class="mb-0"><strong>Fecha:</strong> {{ novedad.fecha|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-clipboard-list fa-4x mb-3" style="color: #94a3b8;"></i>
+        <h4 class="text-muted">No hay novedades registradas</h4>
+        <p class="text-muted">No se encontraron novedades con los filtros aplicados.</p>
+    </div>
+    {% endfor %}
+</div>

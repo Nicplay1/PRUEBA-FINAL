@@ -4,8 +4,8 @@ from django.template.loader import render_to_string
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from usuario.models import *
-from datetime import date
-
+from vigilante.models import *
+from datetime import datetime, date, timedelta
 
 
 # ------------------------------
@@ -253,8 +253,12 @@ def sorteo_creado(sender, instance, created, **kwargs):
 @receiver(post_save, sender=VehiculoResidente)
 def vehiculo_creado_o_actualizado(sender, instance, created, **kwargs):
     channel_layer = get_channel_layer()
+
+    # ----------------------------
+    # 1. Actualizar tabla admin
+    # ----------------------------
     vehiculos = VehiculoResidente.objects.all()
-    
+
     html = render_to_string("administrador/vehiculos/tabla_vehiculos.html", {
         "vehiculos": vehiculos
     })
@@ -265,5 +269,180 @@ def vehiculo_creado_o_actualizado(sender, instance, created, **kwargs):
             "type": "vehiculos_update",
             "action": "refresh",
             "html": html,
+        }
+    )
+
+    # ----------------------------
+    # 2. ACTUALIZAR SORTEOS DEL RESIDENTE
+    # ----------------------------
+    enviar_sorteos_a_residente(instance.cod_usuario)
+
+    
+@receiver(post_save, sender=ArchivoVehiculo)
+def archivo_guardado(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    vehiculo = instance.id_vehiculo
+    archivos = ArchivoVehiculo.objects.filter(id_vehiculo=vehiculo)
+
+    html = render_to_string("administrador/vehiculos/tabla_archivos.html", {
+        "archivos": archivos
+    })
+
+    async_to_sync(channel_layer.group_send)(
+        f"archivos_vehiculo_{vehiculo.id_vehiculo_residente}",
+        {
+            "type": "archivos_update",
+            "html": html,
+            "action": "refresh"
+        }
+    )
+
+
+    
+@receiver(post_save, sender=Paquete)
+def actualizar_tabla_paquetes(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+
+    html = render_to_string(
+        "vigilante/correspondecia/tabla_paquetes.html",
+        {"paquetes": Paquete.objects.all()},
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        "paquetes_group",
+        {
+            "type": "paquetes_update",
+            "html": html
+        }
+    )
+    
+@receiver(post_save, sender=DetallesParqueadero)
+@receiver(post_delete, sender=DetallesParqueadero)
+def actualizar_tabla_parqueadero(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+    
+    # Obtener todos los registros con las relaciones necesarias
+    registros = DetallesParqueadero.objects.select_related(
+        "id_visitante", "id_vehiculo_residente", "id_parqueadero"
+    ).order_by('-id_detalle')
+
+    # Calcular tiempos y valores (igual que en la vista)
+    for detalle in registros:
+        if detalle.tipo_propietario == "Residente":
+            detalle.valor_pago = 0
+            detalle.tiempo_total = None
+        elif detalle.hora_llegada and detalle.hora_salida:
+            llegada_dt = datetime.combine(detalle.registro, detalle.hora_llegada)
+            salida_dt = datetime.combine(detalle.registro, detalle.hora_salida)
+
+            if salida_dt < llegada_dt:
+                salida_dt += timedelta(days=1)
+
+            duracion = salida_dt - llegada_dt
+            horas = duracion.total_seconds() / 3600
+            total_seconds = int(duracion.total_seconds())
+            horas_int = total_seconds // 3600
+            minutos_int = (total_seconds % 3600) // 60
+            segundos_int = total_seconds % 60
+            detalle.tiempo_total_str = f"{horas_int:02d}:{minutos_int:02d}:{segundos_int:02d}"
+            detalle.valor_pago = round(max(horas, 1) * 2000, 2)
+        else:
+            detalle.tiempo_total = None
+            detalle.valor_pago = None
+
+    html = render_to_string(
+        "vigilante/parqueadero/tabla_parqueadero.html",
+        {"registros": registros},
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        "parqueadero_group",
+        {
+            "type": "parqueadero_update",
+            "html": html
+        }
+    )
+    
+    
+@receiver(post_save, sender=RegistroCorrespondencia)
+def actualizar_tabla_correspondencia(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+    
+    registros = RegistroCorrespondencia.objects.all()
+    html = render_to_string(
+        "vigilante/correspondecia/partial_registros_correspondencia.html",
+        {"registros": registros},
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        "correspondencia_group",
+        {
+            "type": "correspondencia_update",
+            "html": html
+        }
+    )
+    
+@receiver(post_save, sender=Novedades)
+@receiver(post_delete, sender=Novedades)
+def actualizar_tabla_novedades(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+
+    # Obtener todas las novedades con las relaciones necesarias
+    novedades = Novedades.objects.select_related(
+        "id_detalle_residente__cod_usuario",
+        "id_visitante", 
+        "id_paquete",
+        "id_usuario"
+    ).all().order_by('-fecha')
+
+    html = render_to_string(
+        "vigilante/novedades/tabla_novedades.html",
+        {"novedades": novedades},
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        "novedades_group",
+        {
+            "type": "novedades_update",
+            "html": html
+        }
+    )
+    
+@receiver(post_save, sender=Novedades)
+@receiver(post_delete, sender=Novedades)
+def actualizar_tabla_novedades_admin(sender, instance, **kwargs):
+    channel_layer = get_channel_layer()
+
+    # Obtener el filtro actual (simulando el comportamiento de la vista)
+    filtro_actual = 'todos'  # Puedes ajustar esto según tu lógica de filtros
+    
+    # Obtener todas las novedades con las relaciones necesarias
+    novedades = Novedades.objects.select_related(
+        "id_visitante", 
+        "id_paquete"
+    ).all().order_by('-fecha')
+
+    # Aplicar filtros si es necesario
+    if hasattr(instance, '_filtro_actual'):
+        filtro_actual = instance._filtro_actual
+
+    if filtro_actual == 'visitante':
+        novedades = novedades.filter(id_visitante__isnull=False)
+    elif filtro_actual == 'paquete':
+        novedades = novedades.filter(id_paquete__isnull=False)
+
+    html = render_to_string(
+        "administrador/novedades/tabla_novedades.html",
+        {
+            "novedades": novedades,
+            "filtro_actual": filtro_actual
+        },
+    )
+
+    async_to_sync(channel_layer.group_send)(
+        "novedades_admin_group",
+        {
+            "type": "novedades_admin_update",
+            "html": html
         }
     )

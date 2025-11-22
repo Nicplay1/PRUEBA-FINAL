@@ -18,12 +18,14 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from django.conf import settings
+from usuario.utils import enviar_correo_async
 
 
 @rol_requerido([4])
 @login_requerido
 def panel_general_vigilante(request):
     return render(request, "vigilante/panel.html")
+
 
 
 def normalizar_placa(placa_raw):
@@ -78,7 +80,7 @@ def registrar_parqueadero(request):
     mostrar_modal_residente = False
     form = None
 
-    # --- 1. POST: Registrar Visitante Nuevo ---
+    # --- POST: Registrar Visitante Nuevo ---
     if request.method == "POST" and "guardar_visitante" in request.POST:
         form = VisitanteForm(request.POST)
         if form.is_valid():
@@ -91,7 +93,7 @@ def registrar_parqueadero(request):
 
             if detalle and detalle.cod_usuario and detalle.cod_usuario.correo:
                 try:
-                    send_mail(
+                    enviar_correo_async(
                         subject="Nuevo visitante registrado - Altos de Fontibón",
                         message=(
                             f"Estimado(a) {detalle.cod_usuario.nombres},\n\n"
@@ -103,8 +105,7 @@ def registrar_parqueadero(request):
                             "Atentamente,\nAdministración: Altos de Fontibón"
                         ),
                         from_email="altosdefontibon.cr@gmail.com",
-                        recipient_list=[detalle.cod_usuario.correo],
-                        fail_silently=False,
+                        recipient_list=[detalle.cod_usuario.correo]
                     )
                 except Exception as e:
                     print(f"Error enviando correo: {e}")
@@ -128,19 +129,22 @@ def registrar_parqueadero(request):
             messages.success(request, f"Visitante y detalle creados con placa {visitante.placa}")
             return redirect('registrar_detalle_parqueadero')
 
-    # --- 2. GET: Buscar Placa y Registrar Movimiento ---
+    # --- GET: Buscar Placa y Registrar Movimiento ---
     if query:
         vehiculo = VehiculoResidente.objects.filter(placa=query).first()
         visitante = Visitante.objects.filter(placa=query).first()
         hora_actual = timezone.localtime().time()
 
         if vehiculo:
+            # 🔹 Solo ganadores del último sorteo
+            ultimo_sorteo = Sorteo.objects.order_by('-fecha_inicio').first()
             ganador = GanadorSorteo.objects.filter(
+                id_sorteo=ultimo_sorteo,
                 id_detalle_residente__cod_usuario__vehiculoresidente__placa=vehiculo.placa
             ).select_related("id_parqueadero").first()
 
             if not ganador:
-                messages.error(request, f"El vehículo con placa {query} no es ganador del sorteo.")
+                messages.error(request, f"El vehículo con placa {query} no es ganador del último sorteo.")
             else:
                 parqueadero_ganador = ganador.id_parqueadero
                 placa_encontrada = vehiculo.placa
@@ -199,7 +203,7 @@ def registrar_parqueadero(request):
                 "tipo_vehiculo": tipo_vehiculo_detectado
             })
 
-    # --- 3. Calcular tiempos y valores ---
+    # --- Calcular tiempos y valores ---
     for detalle in registros:
         if detalle.tipo_propietario == "Residente":
             detalle.valor_pago = 0
@@ -208,18 +212,16 @@ def registrar_parqueadero(request):
             llegada_dt = datetime.combine(detalle.registro, detalle.hora_llegada)
             salida_dt = datetime.combine(detalle.registro, detalle.hora_salida)
 
-            # 🔹 Corrección: si la salida es menor que la llegada, pasó al día siguiente
             if salida_dt < llegada_dt:
                 salida_dt += timedelta(days=1)
 
             duracion = salida_dt - llegada_dt
-            horas = duracion.total_seconds() / 3600
-            total_seconds = int(duracion.total_seconds())  # elimina microsegundos
+            total_seconds = int(duracion.total_seconds())
             horas_int = total_seconds // 3600
             minutos_int = (total_seconds % 3600) // 60
             segundos_int = total_seconds % 60
             detalle.tiempo_total_str = f"{horas_int:02d}:{minutos_int:02d}:{segundos_int:02d}"
-            detalle.valor_pago = round(max(horas, 1) * 2000, 2)
+            detalle.valor_pago = round(max(total_seconds / 3600, 1) * 2000, 2)
         else:
             detalle.tiempo_total = None
             detalle.valor_pago = None
@@ -293,25 +295,28 @@ def registro_correspondencia_view(request):
 
     if request.method == 'POST' and 'crear_registro' in request.POST:
         if form.is_valid():
-            registro = form.save()
+            registro = form.save(commit=False)
 
+            # ⚡ Asignar fecha actual automáticamente
+            registro.fecha_registro = timezone.localtime()
+            registro.save()
+
+            # Notificar a residentes
             residentes = Usuario.objects.filter(id_rol=2, estado="Activo")  
-
             for residente in residentes:
                 try:
-                    send_mail(
+                    enviar_correo_async(
                         subject="Nuevo recibo en porteria - Altos de Fontibón",
                         message=(
                             f"Estimado residente \n\n"
-                            f"Te informamos que se ha registrado un nuevo recibo en la porteria del conjunto \n\n"
+                            f"Se ha registrado un nuevo recibo en la porteria del conjunto \n\n"
                             f"Descripción: {registro.descripcion}\n"
                             f"Fecha: {registro.fecha_registro.strftime('%d/%m/%Y %H:%M')}\n\n"
                             f"Por favor acérquese a reclamarlo en porteria\n\n"
                             f"Atentamente.\nAdministración: Altos de Fontibón"
                         ),
                         from_email="altosdefontibon.cr@gmail.com",
-                        recipient_list=[residente.correo],
-                        fail_silently=False,
+                        recipient_list=[residente.correo]
                     )
                 except Exception as e:
                     print(f"Error enviando a {residente.correo}: {e}")
@@ -325,6 +330,7 @@ def registro_correspondencia_view(request):
         'form': form,
         'form_entrega': form_entrega
     })
+
 
 
 @rol_requerido([4])
@@ -438,7 +444,7 @@ def registrar_paquete(request):
 
             if detalle and detalle.cod_usuario and detalle.cod_usuario.correo:
                 try:
-                    send_mail(
+                    enviar_correo_async(
                         subject="Nuevo paquete en porteria - Altos de Fontibón",
                         message=(
                             f"Estimado(a) {detalle.cod_usuario.nombres},\n\n"
@@ -448,8 +454,7 @@ def registrar_paquete(request):
                             "Atentamente.\nAdministración: Altos de Fontibón"
                         ),
                         from_email="altosdefontibon.cr@gmail.com",
-                        recipient_list=[detalle.cod_usuario.correo],
-                        fail_silently=False,
+                        recipient_list=[detalle.cod_usuario.correo]
                     )
                 except Exception as e:
                     print(f"Error enviando correo a {detalle.cod_usuario.correo}: {e}")
@@ -495,6 +500,12 @@ def entregar_paquete(request):
 def novedades_view(request):
     usuarios_rol4 = Usuario.objects.filter(id_rol=4)
 
+    # FILTRAR SOLO PAQUETES NO ENTREGADOS
+    paquetes_no_entregados = Paquete.objects.filter(fecha_entrega__isnull=True)
+
+    # FILTRAR SOLO VISITANTES ACTIVOS (si aplica)
+    visitantes = Visitante.objects.all()
+
     if request.method == "POST":
         form = NovedadesForm(request.POST, request.FILES)
 
@@ -513,33 +524,42 @@ def novedades_view(request):
                 "id_visitante": None,
             }
 
+            # ============================
+            # NOVEDAD POR PAQUETE
+            # ============================
             if tipo_novedad == "paquete":
                 paquete = form.cleaned_data.get("id_paquete")
+
                 if paquete:
+                    # Obtener el detalle residente asociado a ese paquete
                     detalle_residente = DetalleResidente.objects.filter(
                         apartamento=paquete.apartamento,
                         torre=paquete.torre
                     ).first()
+
                     novedad_data["id_paquete"] = paquete
                     novedad_data["id_detalle_residente"] = detalle_residente
 
+            # ============================
+            # NOVEDAD POR VISITANTE
+            # ============================
             elif tipo_novedad == "visitante":
                 visitante = form.cleaned_data.get("id_visitante")
+
                 if visitante:
                     detalle_residente = DetalleResidente.objects.filter(
                         apartamento=visitante.apartamento,
                         torre=visitante.torre
                     ).first()
+
                     novedad_data["id_visitante"] = visitante
                     novedad_data["id_detalle_residente"] = detalle_residente
 
-            # Crear la novedad en la DB
-            novedad = Novedades.objects.create(**novedad_data)
+            # Guardar la novedad en la BD
+            Novedades.objects.create(**novedad_data)
 
             messages.success(request, "Novedad registrada correctamente.")
             return redirect("novedades")
-
-        # No mostramos error si no llenan todos los campos
 
     else:
         form = NovedadesForm()
@@ -550,8 +570,8 @@ def novedades_view(request):
         "form": form,
         "novedades": novedades,
         "usuarios_rol4": usuarios_rol4,
-        "paquetes": Paquete.objects.all(),
-        "visitantes": Visitante.objects.all(),
+        "paquetes": paquetes_no_entregados,  # SOLO NO ENTREGADOS
+        "visitantes": visitantes,
     }
     return render(request, "vigilante/novedades/listar_novedades.html", context)
 

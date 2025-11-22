@@ -1,168 +1,92 @@
-const ws = new WebSocket(`ws://${window.location.host}/ws/pagos/{{ reserva.id_reserva }}/`);
-
-ws.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-
-    if (data.html_pagos) {
-        document.getElementById("tabla-pagos").innerHTML = data.html_pagos;
-    }
-};
-
-// =======================
-// Variables Globales
-// =======================
-let sidebar, overlay, toggleBtn, mainContent;
-
-// =======================
-// Inicialización cuando el DOM esté listo
-// =======================
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar variables
-    sidebar = document.getElementById('sidebar');
-    overlay = document.getElementById('sidebarOverlay');
-    toggleBtn = document.getElementById('toggleSidebar');
-    mainContent = document.getElementById('mainContent');
-
-    // Inicializar funcionalidades
-    initSidebar();
-    initFormEnhancements();
-    initAutoHideAlerts();
-});
-
-// =======================
-// Sidebar Functionality
-// =======================
-function initSidebar() {
-    if (!toggleBtn || !sidebar || !overlay) {
-        console.warn('Elementos del sidebar no encontrados');
-        return;
-    }
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
     function toggleSidebar() {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
 
     toggleBtn.addEventListener('click', toggleSidebar);
     overlay.addEventListener('click', toggleSidebar);
 
-    // Cerrar sidebar con tecla Escape
-    document.addEventListener('keydown', function(e) {
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             toggleSidebar();
         }
     });
 
-    // Manejo responsive automático
-    function handleResize() {
+    // Responsive automático
+    window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
-        }
-    }
-    window.addEventListener('resize', handleResize);
-}
-
-// =======================
-// Form Enhancements
-// =======================
-function initFormEnhancements() {
-    const formInputs = document.querySelectorAll('input, select, textarea');
-    formInputs.forEach(input => {
-        if (!input.classList.contains('form-check-input')) {
-            input.classList.add('form-control-modern');
+            toggleBtn.classList.remove('hidden');
         }
     });
-}
 
-// =======================
-// Auto-hide Alerts
-// =======================
-function initAutoHideAlerts() {
+    // Ocultar alertas después de 4s
     setTimeout(() => {
         document.querySelectorAll('.alert-modern').forEach(el => {
             el.classList.remove('show');
             setTimeout(() => el.remove(), 300);
         });
-    }, 5000);
-}
+    }, 4000);
+});
 
-// =======================
-// Actualizar estado de pago
-// =======================
-function actualizarEstadoPago(checkbox, pagoId) {
-    const formData = new FormData();
-    formData.append('pago_id', pagoId);
-    formData.append('estado', checkbox.checked ? 'True' : 'False');
+// Modal de confirmación para guardar cambios
+document.addEventListener("DOMContentLoaded", () => {
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const submitBtn = document.getElementById('submitBtn');
+    const reservaForm = document.getElementById('reservaForm');
 
-    fetch(window.location.href, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-        }
-        return response;
-    })
-    .then(() => {
-        const badge = document.getElementById('badge-' + pagoId);
-        if (badge) {
-            badge.textContent = checkbox.checked ? 'Aprobado' : 'Pendiente';
-            badge.className = checkbox.checked ? 'badge badge-success' : 'badge badge-warning';
-        }
-    })
-    .catch(error => {
-        console.error('Error al actualizar estado de pago:', error);
-        // Revertir el cambio en caso de error
-        checkbox.checked = !checkbox.checked;
-        alert('Error al actualizar el estado del pago');
-    });
-}
+    if (submitBtn && reservaForm) {
+        submitBtn.addEventListener('click', function() {
+            confirmModal.show();
+        });
 
-// =======================
-// Función para obtener CSRF de cookies
-// =======================
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            confirmModal.hide();
+
+            // Mostrar modal de éxito
+            successModal.show();
+
+            // Esperar 2 segundos y luego enviar el formulario
+            setTimeout(() => {
+                reservaForm.submit();
+            }, 2000);
+        });
     }
-    return cookieValue;
-}
+});
 
-// =======================
-// Utility Functions
-// =======================
-function showAlert(message, type = 'success') {
-    const alertContainer = document.querySelector('.alerts-container') || createAlertContainer();
-    const alert = document.createElement('div');
-    alert.className = `alert-modern alert-${type} fade show`;
-    alert.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
-        <div>${message}</div>
-    `;
-    alertContainer.appendChild(alert);
-    
-    setTimeout(() => {
-        alert.classList.remove('show');
-        setTimeout(() => alert.remove(), 300);
-    }, 5000);
-}
+// WebSocket para actualizaciones de pagos en tiempo real
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof RESERVA_ID !== 'undefined') {
+        const loc = window.location;
+        const wsStart = loc.protocol === "https:" ? "wss://" : "ws://";
+        const socket = new WebSocket(wsStart + loc.host + `/ws/pagos-reserva/${RESERVA_ID}/`);
 
-function createAlertContainer() {
-    const container = document.createElement('div');
-    container.className = 'alerts-container';
-    document.body.prepend(container);
-    return container;
-}
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.action === "refresh") {
+                document.getElementById("pagos-container").innerHTML = data.html;
+            }
+        };
+
+        socket.onclose = function(e) {
+            console.error("WebSocket cerrado inesperadamente.");
+        };
+    }
+});

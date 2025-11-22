@@ -3,72 +3,285 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle Vehículo</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="{% static 'css/administrador/vehiculos/detalles_vehiculo.css' %}">
 </head>
 <body>
-<div class="container mt-5">
-    <h2>Vehículo: {{ vehiculo.placa }} ({{ vehiculo.tipo_vehiculo }})</h2>
 
-    <h4 class="mt-4">Residente</h4>
-    {% if residente %}
-        <p><strong>Nombre:</strong> {{ residente.cod_usuario.nombres }} {{ residente.cod_usuario.apellidos }}</p>
-        <p><strong>Torre:</strong> {{ residente.torre }}</p>
-        <p><strong>Apartamento:</strong> {{ residente.apartamento }}</p>
-    {% else %}
-        <p>No se encontró información del residente</p>
+    <!-- Alertas -->
+    {% if messages %}
+    <div class="alerts-container">
+        {% for message in messages %}
+            <div class="alert-modern alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %} fade show" role="alert">
+                {% if message.tags == "success" %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif message.tags == "error" %}
+                    <i class="fas fa-times-circle"></i>
+                {% else %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+                <div>{{ message }}</div>
+            </div>
+        {% endfor %}
+    </div>
     {% endif %}
 
-    <h4 class="mt-4">Archivos subidos</h4>
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Tipo de Documento</th>
-                    <th>Archivo</th>
-                    <th>Fecha Subida</th>
-                    <th>Fecha Vencimiento</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for archivo in archivos %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ archivo.id_tipo_archivo.tipo_documento }}</td>
-                    <td>
-                        <a href="{{ archivo.ruta_archivo.url }}" target="_blank">Ver Archivo</a>
-                    </td>
-                    <td>{{ archivo.fecha_subida|date:"d/m/Y H:i" }}</td>
-                    <td>{% if archivo.fecha_vencimiento %}{{ archivo.fecha_vencimiento|date:"d/m/Y" }}{% else %}-{% endif %}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay archivos subidos</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Botón móvil -->
+    <button class="mobile-toggle" id="toggleSidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-img">
+                    <img src="{% static 'img/LOGO.png' %}" alt="Logo">
+                </div>
+                <div class="logo-text">Panel Administrativo</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Gestión</div>
+                <a href="{% url 'panel_administrador' %}" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="{% url 'gestionar_usuarios' %}" class="nav-item">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Usuarios</span>
+                </a>
+                <a href="{% url 'gestionar_reservas' %}" class="nav-item">
+                    <i class="fas fa-tasks"></i>
+                    <span>Reservas</span>
+                </a>
+                <a href="{% url 'listar_noticias' %}" class="nav-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Noticias</span>
+                </a>
+                <a href="{% url 'lista_vehiculos' %}" class="nav-item active">
+                    <i class="fas fa-car"></i>
+                    <span>Vehículos</span>
+                </a>
+                <a href="{% url 'sorteos_list_create' %}" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Sorteos</span>
+                </a>
+
+                <a href="{% url 'listar_novedades' %}" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Novedades</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-name">Usuario Actual</div>
+                <div class="user-role">Administrador</div>
+            </div>
+            <a href="{% url 'perfil_usuario' %}" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="{% url 'logout' %}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="main-content" id="mainContent">
+        <div class="content-header">
+            <h1 class="page-title">
+                <i class="fas fa-car"></i>
+                Detalle Vehículo #{{ vehiculo.placa }}
+            </h1>
+        </div>
+
+        <a href="{% url 'lista_vehiculos' %}" class="back-link mt-4 ms-4">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a Vehículos
+            </a>
+
+        <div class="content-body">
+            <form method="POST" id="vehiculoForm">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Card 1: Información del Vehículo -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card info-card h-100">
+                            <div class="card-header">
+                                <i class="fas fa-car me-2"></i> Información del Vehículo
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-with-icons">
+                                    <li class="list-group-item">
+                                        <i class="fas fa-tag"></i>
+                                        <div><strong>Placa:</strong> {{ vehiculo.placa }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-car-side"></i>
+                                        <div><strong>Tipo:</strong> {{ vehiculo.tipo_vehiculo }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <div><strong>Estado de documentos:</strong> 
+                                            {% if vehiculo.documentos %}
+                                                <span class="badge bg-success">Completos</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Pendientes</span>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Información del Residente -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card info-card h-100">
+                            <div class="card-header">
+                                <i class="fas fa-user me-2"></i> Información del Residente
+                            </div>
+                            <div class="card-body">
+                                {% if residente %}
+                                <ul class="list-group list-with-icons">
+                                    <li class="list-group-item">
+                                        <i class="fas fa-user"></i>
+                                        <div><strong>Nombre:</strong> {{ residente.cod_usuario.nombres }} {{ residente.cod_usuario.apellidos }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-phone"></i>
+                                        <div><strong>Celular:</strong> {{ residente.cod_usuario.celular }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <div><strong>Correo:</strong> {{ residente.cod_usuario.correo }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-building"></i>
+                                        <div><strong>Torre:</strong> {{ residente.torre }}</div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <i class="fas fa-home"></i>
+                                        <div><strong>Apartamento:</strong> {{ residente.apartamento }}</div>
+                                    </li>
+                                </ul>
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-user-slash fa-3x mb-3" style="color: #94a3b8;"></i>
+                                    <h5 class="text-muted">No se encontró información del residente</h5>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Archivos subidos CON ESTADO DE DOCUMENTOS INTEGRADO -->
+                    <div class="col-12 mb-4">
+                        <div class="card info-card">
+                            <div class="card-header">
+                                <i class="fas fa-file-alt me-2"></i> Archivos Subidos
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="tabla-archivos">
+                                    {% include "administrador/vehiculos/tabla_archivos.html" %}
+                                </div>
+                                
+                                <!-- Estado de documentos integrado en la misma card -->
+                                <div class="document-status-container">
+                                    <div class="switch-container">
+                                        <label for="documentos" class="form-check-label fw-medium">
+                                            Documentos válidos
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="documentos" name="documentos" {% if vehiculo.documentos %}checked{% endif %}>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Botón de Guardar Cambios INTEGRADO -->
+                                    <button type="button" class="btn btn-success-green" id="submitBtn">
+                                        <i class="fas fa-save"></i>
+                                        Actualizar Estado
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal Confirmación Actualizar Estado -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm">
+          <div class="modal-header">
+            <i class="fas fa-exclamation-circle icon-alert"></i>
+            <h5 class="modal-title">Confirmar Cambios</h5>
+          </div>
+          <div class="modal-body" id="confirmBody">
+            ¿Estás seguro de que quieres actualizar el estado de los documentos de este vehículo?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-confirm" id="confirmBtn">
+                <i class="fas fa-check"></i>
+                Sí, actualizar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <h4 class="mt-4">Estado de Documentos</h4>
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="documentos" name="documentos" {% if vehiculo.documentos %}checked{% endif %}>
-            <label class="form-check-label" for="documentos">Documentos Completos</label>
+    <!-- Modal Éxito -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-success">
+          <div class="modal-header">
+            <i class="fas fa-check-circle icon-success"></i>
+            <h5 class="modal-title">Cambios Guardados</h5>
+          </div>
+          <div class="modal-body" id="successBody">
+            El estado de los documentos se ha actualizado correctamente.
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Actualizar Estado</button>
-    </form>
+      </div>
+    </div>
 
-    {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-                <div class="alert alert-success">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Variables globales para Django -->
+    <script>
+        const VEHICULO_ID = "{{ vehiculo.id_vehiculo_residente }}";
+    </script>
+
+    <!-- JS Personalizado -->
+    <script src="{% static 'js/administrador/vehiculos/detalles_vehiculo.js' %}"></script>
 </body>
 </html>

@@ -7,17 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Estilos propios -->
+    
+    <!-- CSS personalizado -->
     <link rel="stylesheet" href="{% static 'css/vigilante/correspondencia/resibos.css' %}">
 </head>
-
 <body>
 
     <!-- Alertas -->
@@ -46,14 +45,13 @@
     <!-- Overlay para móvil -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Overlay para modales -->
-    <div id="overlay" onclick="closeAllModals()"></div>
-
-    <!-- Sidebar -->
+    <!-- Sidebar (idéntico al Código 1) -->
     <nav id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <img src="{% static 'img/Logo Fontibon.png' %}" alt="Logo" class="logo-img">
+                <div class="logo-img">
+                    <img src="{% static 'img/Logo Fontibon.png' %}" alt="Logo">
+                </div>
                 <div class="logo-text">Panel Vigilante</div>
             </div>
         </div>
@@ -61,10 +59,22 @@
         <div class="sidebar-nav">
             <div class="nav-section">
                 <div class="nav-section-title">Navegación</div>
-                <a href="{% url 'panel_vigilante' %}" class="nav-item"><i class="fas fa-home"></i><span>Inicio</span></a>
-                <a href="{% url 'registrar_detalle_parqueadero' %}" class="nav-item"><i class="fas fa-parking"></i><span>Parqueadero</span></a>
-                <a href="{% url 'correspondencia' %}" class="nav-item active"><i class="fas fa-envelope"></i><span>Correspondencia</span></a>
-                <a href="{% url 'novedades' %}" class="nav-item"><i class="fas fa-bell"></i><span>Novedades</span></a>
+                <a href="{% url 'panel_vigilante' %}" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
+                </a>
+                <a href="{% url 'registrar_detalle_parqueadero' %}" class="nav-item">
+                    <i class="fas fa-parking"></i>
+                    <span>Parqueadero</span>
+                </a>
+                <a href="{% url 'registro_correspondencia' %}" class="nav-item active">
+                    <i class="fas fa-envelope"></i>
+                    <span>Correspondencia</span>
+                </a>
+                <a href="{% url 'novedades' %}" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Novedades</span>
+                </a>
             </div>
         </div>
 
@@ -73,20 +83,28 @@
                 <div class="user-name">Usuario Actual</div>
                 <div class="user-role">Vigilante</div>
             </div>
-            <a href="{% url 'perfil_usuario' %}" class="nav-item"><i class="fas fa-user"></i><span>Mi Perfil</span></a>
-            <a href="{% url 'logout' %}" class="nav-item"><i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span></a>
+            <a href="{% url 'perfil_usuario' %}" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="{% url 'logout' %}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
         </div>
     </nav>
 
-    <!-- Contenido principal -->
+    <!-- Contenido Principal -->
     <main class="main-content" id="mainContent">
         <div class="content-header">
             <h1 class="page-title">
-                <i class="fas fa-envelope"></i> Gestión de Correspondencia
+                <i class="fas fa-envelope"></i>
+                Gestión de Correspondencia
             </h1>
         </div>
 
         <div class="content-body">
+            <!-- Switch -->
             <div class="toggle-switch">
                 <label class="switch-label">
                     <a href="{% url 'correspondencia' %}" class="option paquetes-link">Paquetes</a>
@@ -94,87 +112,162 @@
                 </label>
             </div>
 
+            <!-- Cards de Recibos -->
             <div class="card-container">
                 <div class="card" data-bs-toggle="modal" data-bs-target="#registroModal">
-                    <div class="icon-container text-center text-success mb-3"><i class="fas fa-plus-circle fa-4x"></i></div>
+                    <div class="icon-container text-center text-success mb-3">
+                        <i class="fas fa-plus-circle fa-4x"></i>
+                    </div>
                     <h2 class="text-center">Agregar Registro</h2>
                 </div>
+
                 <div class="card" data-bs-toggle="modal" data-bs-target="#entregaModal">
-                    <div class="icon-container text-center text-success mb-3"><i class="fas fa-magnifying-glass fa-4x"></i></div>
+                    <div class="icon-container text-center text-success mb-3">
+                        <i class="fas fa-magnifying-glass fa-4x"></i>
+                    </div>
                     <h2 class="text-center">Filtrar Residente</h2>
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <!-- Tabla de Correspondencia (Desktop) -->
+            <div class="table-container">
                 <table class="styled-table">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Tipo</th><th>Descripción</th><th>Fecha Registro</th><th>Vigilante</th>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Fecha Registro</th>
+                            <th>Vigilante</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for registro in registros %}
-                        <tr>
-                            <td>{{ registro.id_correspondencia }}</td>
-                            <td>{{ registro.tipo }}</td>
-                            <td>{{ registro.descripcion }}</td>
-                            <td>{{ registro.fecha_registro }}</td>
-                            <td>{{ registro.cod_vigilante.nombres }} {{ registro.cod_vigilante.apellidos }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5">
-                                <div class="empty-state">
-                                    <i class="fas fa-table"></i>
-                                    <div>No hay registros aún</div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="correspondencia-body">
+                        {% include 'vigilante/correspondecia/partial_registros_correspondencia.html' with registros=registros %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Cards de Correspondencia (Móvil) - NUEVO DISEÑO COMO CÓDIGO 1 -->
+            <div class="correspondencia-cards-container" id="correspondencia-cards">
+                {% for registro in registros %}
+                <div class="card-novedad">
+                    <div class="card-novedad-header">
+                        <h5 class="card-novedad-title">Recibo</h5>
+                        <span class="card-novedad-badge">{{ registro.tipo }}</span>
+                    </div>
+                    <div class="card-novedad-body">
+                        <div class="card-novedad-field">
+                            <span class="card-novedad-label">Descripción:</span>
+                            <span class="card-novedad-value">{{ registro.descripcion }}</span>
+                        </div>
+                        <div class="card-novedad-field">
+                            <span class="card-novedad-label">Fecha de Registro:</span>
+                            <span class="card-novedad-value">{{ registro.fecha_registro }}</span>
+                        </div>
+                        <div class="card-novedad-field">
+                            <span class="card-novedad-label">Vigilante:</span>
+                            <span class="card-novedad-value">{{ registro.cod_vigilante.nombres }} {{ registro.cod_vigilante.apellidos }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-table"></i>
+                    <div>No hay registros aún</div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </main>
 
-    <!-- Modal Registro -->
-    <div class="modal fade" id="registroModal" tabindex="-1" aria-hidden="true">
+    <!-- === MODALES === -->
+
+    <!-- Registro Correspondencia -->
+    <div class="modal fade" id="registroModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Nuevo Registro de Correspondencia</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-content modal-correspondencia">
+                <div class="modal-form-header">
+                    <h3 class="modal-form-title">
+                        <i class="fas fa-plus-circle"></i> Nuevo Registro de Correspondencia
+                    </h3>
+                    <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 <form method="POST">
-                    <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="form-group"><label>Tipo</label>{{ form.tipo }}</div>
-                        <div class="form-group"><label>Descripción</label>{{ form.descripcion }}</div>
-                        <div class="form-group"><label>Fecha de Registro</label>{{ form.fecha_registro }}</div>
-                        <div class="form-group"><label>Vigilante</label>{{ form.cod_vigilante }}</div>
+                    {% csrf_token %}
+                    <div class="modal-form-body">
+                        <div class="form-group">
+                            <label for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <div class="text-danger small">{{ form.tipo.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="text-danger small">{{ form.descripcion.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.fecha_registro.id_for_label }}">{{ form.fecha_registro.label }}</label>
+                            {{ form.fecha_registro }}
+                            {% if form.fecha_registro.errors %}
+                                <div class="text-danger small">{{ form.fecha_registro.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.cod_vigilante.id_for_label }}">{{ form.cod_vigilante.label }}</label>
+                            {{ form.cod_vigilante }}
+                            {% if form.cod_vigilante.errors %}
+                                <div class="text-danger small">{{ form.cod_vigilante.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Cancelar</button>
-                        <button type="submit" name="crear_registro" class="btn-modern"><i class="fas fa-check"></i> Registrar</button>
+                    <div class="modal-form-footer">
+                        <button type="button" class="btn-secondary-modern" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" name="crear_registro" class="btn-modern">
+                            <i class="fas fa-check"></i> Registrar
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal Entrega -->
-    <div class="modal fade" id="entregaModal" tabindex="-1" aria-hidden="true">
+    <!-- Filtrar Residente -->
+    <div class="modal fade" id="entregaModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-search"></i> Filtrar Residente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-content modal-correspondencia">
+                <div class="modal-form-header">
+                    <h3 class="modal-form-title">
+                        <i class="fas fa-search"></i> Filtrar Residente
+                    </h3>
+                    <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-form-body">
                     <form id="form-filtrar">
                         {% csrf_token %}
-                        <div class="form-group">{{ form_entrega.as_p }}</div>
-                        <div class="text-end"><button type="submit" class="btn-modern">Filtrar</button></div>
+                        <div class="form-group">
+                            <label for="{{ form_entrega.apartamento.id_for_label }}">{{ form_entrega.apartamento.label }}</label>
+                            {{ form_entrega.apartamento }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form_entrega.torre.id_for_label }}">{{ form_entrega.torre.label }}</label>
+                            {{ form_entrega.torre }}
+                        </div>
+                        <div class="text-end mb-3">
+                            <button type="submit" class="btn-modern">Filtrar</button>
+                        </div>
                     </form>
                     <hr>
                     <div id="registros-container"></div>
@@ -183,17 +276,12 @@
         </div>
     </div>
 
-    <!-- Bootstrap y jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <script>
-        const URL_REGISTRAR_ENTREGA = "{% url 'registrar_entrega' %}";
-        const CSRF_TOKEN = "{{ csrf_token }}";
-    </script>
-
-    <!-- Script externo -->
+    
+    <!-- JavaScript personalizado -->
     <script src="{% static 'js/vigilante/correspondencia/resibos.js' %}"></script>
-
 </body>
 </html>

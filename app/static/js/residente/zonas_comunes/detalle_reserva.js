@@ -1,58 +1,47 @@
-const ws = new WebSocket(`ws://${window.location.host}/ws/pagos/{{ reserva.id_reserva }}/`);
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-ws.onmessage = (e) => {
-    const data = JSON.parse(e.data);
-
-    if (data.html_residente) {
-        document.getElementById("tabla-reservas").innerHTML = data.html_residente;
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
-};
 
+    if (toggleBtn && sidebar && overlay) {
+        toggleBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+    }
 
-
-// Alertas (autocierre)
-setTimeout(() => {
-    document.querySelectorAll('.alert-modern').forEach(el => {
-        el.classList.remove('show');
-        setTimeout(() => el.remove(), 300);
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
     });
-}, 4000);
 
-// Mostrar modal de pago si existe
-document.addEventListener("DOMContentLoaded", function() {
-    var alertaModal = document.getElementById('alertaPagoModal');
-    if (alertaModal) {
-        new bootstrap.Modal(alertaModal).show();
-    }
+    // Responsive automático
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && sidebar) {
+            sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            if (toggleBtn) toggleBtn.classList.remove('hidden');
+        }
+    });
+
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
+        });
+    }, 4000);
 });
-
-// Sidebar
-const toggleBtn = document.getElementById('toggleSidebar');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const mainContent = document.getElementById('mainContent');
-
-function toggleSidebar() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-}
-
-if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
-if (overlay) overlay.addEventListener('click', toggleSidebar);
-
-// Cerrar sidebar con tecla Escape
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
-        toggleSidebar();
-    }
-});
-
-// Manejo responsive automático
-function handleResize() {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    }
-}
-
-window.addEventListener('resize', handleResize);

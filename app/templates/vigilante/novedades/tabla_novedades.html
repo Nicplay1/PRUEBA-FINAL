@@ -1,0 +1,171 @@
+{% load static %}
+{% if novedades %}
+<!-- TABLA para desktop - OCULTA EN MOBILE -->
+<div class="table-container d-none d-md-block">
+    <table class="table table-hover align-middle">
+        <thead class="table-header-gradient">
+            <tr>
+                <th>Nombre Residente</th>
+                <th>Nombre Visitante</th>
+                <th>Apto / Torre</th>
+                <th>Placa</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Reporta</th>
+                <th>Foto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for novedad in novedades %}
+            <tr>
+                <td>
+                    {% if novedad.id_detalle_residente %}
+                        {{ novedad.id_detalle_residente.cod_usuario.nombres }} {{ novedad.id_detalle_residente.cod_usuario.apellidos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if novedad.id_visitante %}
+                        {{ novedad.id_visitante.nombres }} {{ novedad.id_visitante.apellidos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if novedad.id_paquete %}
+                        {{ novedad.id_paquete.apartamento }} / {{ novedad.id_paquete.torre }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if novedad.id_visitante %}
+                        {{ novedad.id_visitante.placa }}
+                    {% endif %}
+                </td>
+                <td>{{ novedad.fecha|date:"d-m-Y H:i" }}</td>
+                <td>
+                    {% if novedad.id_paquete %}
+                        <strong>Paquete:</strong> {{ novedad.id_paquete.descripcion|default:"Sin descripción" }}<br>
+                    {% endif %}
+                    <strong>Reporte:</strong> {{ novedad.descripcion }}
+                </td>
+                <td>
+                    {% if novedad.id_usuario %}
+                        {{ novedad.id_usuario.nombres }} {{ novedad.id_usuario.apellidos }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if novedad.foto %}
+                        <a href="{{ novedad.foto.url }}" target="_blank" class="btn-modern">
+                            <i class="fas fa-eye"></i> Ver Foto
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CARDS para mobile - SOLO VISIBLE EN MOBILE -->
+<div class="cards-container-mobile">
+    {% for novedad in novedades %}
+    <div class="card-novedad">
+        <div class="card-novedad-header">
+            <h5 class="card-novedad-title">
+                Novedad
+            </h5>
+            <span class="card-novedad-badge">
+                {{ novedad.fecha|date:"d/m/Y" }}
+            </span>
+        </div>
+        <div class="card-novedad-body">
+
+
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Residente:</span>
+                <span class="card-novedad-value">
+                     {% if novedad.id_detalle_residente %}
+                    {{ novedad.id_detalle_residente.cod_usuario.nombres }} {{ novedad.id_detalle_residente.cod_usuario.apellidos }}
+                    {% else %}  
+                    -
+                    {% endif %}
+                </span>
+            </div>
+
+
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Visitante:</span>
+                <span class="card-novedad-value">
+                    {% if novedad.id_visitante %}
+                        {{ novedad.id_visitante.nombres }} {{ novedad.id_visitante.apellidos }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Apto/Torre:</span>
+                <span class="card-novedad-value">
+                    {% if novedad.id_paquete %}
+                        {{ novedad.id_paquete.apartamento }} / {{ novedad.id_paquete.torre }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Placa:</span>
+                <span class="card-novedad-value">
+                    {% if novedad.id_visitante %}
+                        {{ novedad.id_visitante.placa }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Fecha:</span>
+                <span class="card-novedad-value">{{ novedad.fecha|date:"d-m-Y H:i" }}</span>
+            </div>
+            
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Descripción:</span>
+                <span class="card-novedad-value">
+                    {% if novedad.id_paquete %}
+                        <strong>Paquete:</strong> {{ novedad.id_paquete.descripcion|default:"Sin descripción" }}<br>
+                    {% endif %}
+                    <strong>Reporte:</strong> {{ novedad.descripcion }}
+                </span>
+            </div>
+            
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Reporta:</span>
+                <span class="card-novedad-value">
+                    {% if novedad.id_usuario %}
+                        {{ novedad.id_usuario.nombres }} {{ novedad.id_usuario.apellidos }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if novedad.foto %}
+            <div class="card-novedad-field">
+                <span class="card-novedad-label">Foto:</span>
+                <span class="card-novedad-value">
+                    <a href="{{ novedad.foto.url }}" target="_blank" class="btn-modern">
+                        <i class="fas fa-eye"></i> Ver Foto
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-table"></i>
+        <div>No hay novedades registradas.</div>
+    </div>
+{% endif %}

@@ -1,0 +1,18 @@
+{% for registro in registros %}
+<tr>
+    <td>{{ registro.id_correspondencia }}</td>
+    <td>{{ registro.tipo }}</td>
+    <td>{{ registro.descripcion }}</td>
+    <td>{{ registro.fecha_registro }}</td>
+    <td>{{ registro.cod_vigilante.nombres }} {{ registro.cod_vigilante.apellidos }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5">
+        <div class="empty-state">
+            <i class="fas fa-table"></i>
+            <div>No hay registros aún</div>
+        </div>
+    </td>
+</tr>
+{% endfor %}

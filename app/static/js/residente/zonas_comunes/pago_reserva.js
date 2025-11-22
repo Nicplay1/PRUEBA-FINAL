@@ -1,84 +1,41 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // =========================
-    // Elementos principales
-    // =========================
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
-    const modalOverlay = document.getElementById('overlay');
-    const editarModalEl = document.getElementById('editarPagoModal');
 
-    // =========================
-    // Sidebar
-    // =========================
     function toggleSidebar() {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
 
-    if (toggleBtn && overlay) {
-        toggleBtn.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-    }
+    toggleBtn.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
 
-    // Cerrar sidebar con tecla Escape
-    document.addEventListener('keydown', function (e) {
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && sidebar.classList.contains('active')) {
             toggleSidebar();
         }
     });
 
-    // Ajuste automático en pantallas grandes
-    function handleResize() {
+    // Responsive automático
+    window.addEventListener('resize', () => {
         if (window.innerWidth > 768) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
-        }
-    }
-    window.addEventListener('resize', handleResize);
-
-    // =========================
-    // Control del overlay de modales
-    // =========================
-    function showModalOverlay() {
-        modalOverlay.classList.add('active');
-    }
-
-    function hideModalOverlay() {
-        modalOverlay.classList.remove('active');
-    }
-
-    function closeAllModals() {
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            const modalInstance = bootstrap.Modal.getInstance(modal);
-            if (modalInstance) modalInstance.hide();
-        });
-        hideModalOverlay();
-    }
-
-    // Configurar overlays en todos los modales (excepto editar)
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        if (modal.id !== 'editarPagoModal') {
-            modal.addEventListener('show.bs.modal', showModalOverlay);
-            modal.addEventListener('hidden.bs.modal', hideModalOverlay);
+            toggleBtn.classList.remove('hidden');
         }
     });
 
-    // Cerrar modales con tecla Escape (excepto edición)
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            const editarModal = document.getElementById('editarPagoModal');
-            if (!editarModal || !editarModal.classList.contains('show')) {
-                closeAllModals();
-            }
-        }
-    });
-
-    // =========================
-    // Auto-ocultar alertas
-    // =========================
+    // Ocultar alertas después de 4s
     setTimeout(() => {
         document.querySelectorAll('.alert-modern').forEach(el => {
             el.classList.remove('show');
@@ -86,38 +43,50 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }, 4000);
 
-    // =========================
-    // Modal de edición de pago
-    // =========================
-    if (editarModalEl) {
-        // Activar overlay de desenfoque suave
-        modalOverlay.classList.add('active');
+    // Confirmación para guardar cambios
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    const formPrincipal = document.getElementById('formPrincipal');
 
-        // Mostrar el modal con configuración estática
-        const editarModal = new bootstrap.Modal(editarModalEl, {
-            backdrop: 'static',
-            keyboard: false
-        });
-        editarModal.show();
-
-        // Al cerrarse, quitar overlay y redirigir
-        editarModalEl.addEventListener('hidden.bs.modal', function () {
-            modalOverlay.classList.remove('active');
-            window.location.href = editarModalEl.getAttribute('data-redirect-url');
+    if (formPrincipal) {
+        formPrincipal.addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('confirmBody').textContent = 
+                '¿Estás seguro de que quieres guardar los cambios?';
+            confirmModal.show();
         });
     }
+
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        confirmModal.hide();
+
+        // Mostrar modal de éxito ANTES de enviar
+        setTimeout(() => {
+            successModal.show();
+
+            // Enviar formulario después de mostrar éxito
+            setTimeout(() => {
+                formPrincipal.submit();
+            }, 1500);
+
+        }, 300);
+    });
 });
 
-// Función global para cerrar todos los modales
-function closeAllModals() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        if (modalInstance) modalInstance.hide();
-    });
-    
-    const modalOverlay = document.getElementById('overlay');
-    if (modalOverlay) {
-        modalOverlay.classList.remove('active');
+// WebSocket para actualizar estado de pago
+document.addEventListener("DOMContentLoaded", function() {
+    if (typeof WS_DATA !== 'undefined') {
+        let socket = new WebSocket(
+            "ws://" + window.location.host +
+            "/ws/pago-residente/" + WS_DATA.usuarioId + "/" + WS_DATA.reservaId + "/"
+        );
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.action === "refresh") {
+                document.getElementById("contenedorPago").innerHTML = data.html;
+            }
+        };
     }
-}
+});

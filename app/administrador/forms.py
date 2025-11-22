@@ -77,10 +77,3 @@ class SorteoForm(forms.ModelForm):
             'fecha_inicio': 'Fecha de Inicio',
             'hora_sorteo': 'Hora del Sorteo',
         }
-
-    def clean_fecha_inicio(self):
-        fecha = self.cleaned_data.get('fecha_inicio')
-        if fecha and fecha < timezone.now().date():
-            raise forms.ValidationError("No puedes seleccionar una fecha pasada.")
-        return fecha
-

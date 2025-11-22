@@ -1,40 +1,47 @@
- document.addEventListener("DOMContentLoaded", function () {
-            // Sidebar functionality
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const mainContent = document.getElementById('mainContent');
+// Código del sidebar
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
 
-            function toggleSidebar() {
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            }
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
+    }
 
-            toggleBtn.addEventListener('click', toggleSidebar);
-            overlay.addEventListener('click', toggleSidebar);
+    if (toggleBtn && sidebar && overlay) {
+        toggleBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+    }
 
-            // Cerrar sidebar con tecla Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-                    toggleSidebar();
-                }
-            });
+    // Cerrar sidebar con Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('active')) {
+            toggleSidebar();
+        }
+    });
 
-            // Manejo responsive automático
-            function handleResize() {
-                if (window.innerWidth > 768) {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            }
+    // Responsive automático
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && sidebar) {
+            sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            if (toggleBtn) toggleBtn.classList.remove('hidden');
+        }
+    });
 
-            window.addEventListener('resize', handleResize);
-
-            // Auto-hide alerts
-            setTimeout(() => {
-                document.querySelectorAll('.alert-modern').forEach(el => {
-                    el.classList.remove('show');
-                    setTimeout(() => el.remove(), 300);
-                });
-            }, 4000);
+    // Ocultar alertas después de 4s
+    setTimeout(() => {
+        document.querySelectorAll('.alert-modern').forEach(el => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 300);
         });
+    }, 4000);
+});

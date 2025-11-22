@@ -57,26 +57,17 @@ class DetallesParqueaderoForm(forms.ModelForm):
 class RegistroCorrespondenciaForm(forms.ModelForm):
     class Meta:
         model = RegistroCorrespondencia
-        fields = ['tipo', 'descripcion', 'fecha_registro', 'cod_vigilante']
+        fields = ['tipo', 'descripcion', 'cod_vigilante']  # ⚠ fecha_registro removido
         widgets = {
-            'fecha_registro': forms.DateInput(
-                attrs={'type': 'date', 'class': 'form-control'}
-            ),
+            'tipo': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
+            'cod_vigilante': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.fields['tipo'].initial = 'Recibo'
         self.fields['tipo'].disabled = True
-        self.fields['tipo'].widget.attrs.update({'class': 'form-control'})
-
-        self.fields['fecha_registro'].initial = date.today()
-
-        for field_name, field in self.fields.items():
-            if field_name not in ['tipo', 'fecha_registro']:
-                field.widget.attrs['class'] = 'form-control'
-
         self.fields['cod_vigilante'].queryset = Usuario.objects.filter(id_rol=4)
 
 

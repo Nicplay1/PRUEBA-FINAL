@@ -1,0 +1,181 @@
+{% load static %}
+{% if paquetes %}
+<!-- Contenedor para tabla SIN scroll horizontal -->
+<div class="table-container">
+    <!-- TABLA para desktop -->
+    <table class="table table-hover align-middle styled-table">
+        <thead>
+            <tr>
+                <th>Apt</th>
+                <th>Torre</th>
+                <th>Fecha Recepción</th>
+                <th>Vigilante Recepción</th>
+                <th>Vigilante Entrega</th>
+                <th>Recibido Por</th>
+                <th>Fecha Entrega</th>
+                <th>Foto Cédula</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paquete in paquetes %}
+            <tr>
+                <td>{{ paquete.apartamento }}</td>
+                <td>{{ paquete.torre }}</td>
+                <td>{{ paquete.fecha_recepcion|date:"d/m/Y H:i" }}</td>
+
+                <td>{{ paquete.cod_usuario_recepcion.nombres }} {{ paquete.cod_usuario_recepcion.apellidos }}</td>
+
+                <td>
+                    {% if paquete.cod_usuario_entrega %}
+                        {{ paquete.cod_usuario_entrega.nombres }} {{ paquete.cod_usuario_entrega.apellidos }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ paquete.nombre_residente|default:"-" }}</td>
+
+                <td>
+                    {% if paquete.fecha_entrega %}
+                        {{ paquete.fecha_entrega|date:"d/m/Y H:i" }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if paquete.foto_cedula %}
+                        <a href="{{ paquete.foto_cedula.url }}" target="_blank" class="btn-modern" style="padding: 4px 8px;">
+                            <i class="fas fa-id-card"></i> Ver
+                        </a>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ paquete.descripcion|default:"-" }}</td>
+
+                <td>
+                    {% if not paquete.fecha_entrega %}
+                        <button class="btn-modern registrar-entrega-btn" data-bs-toggle="modal" data-bs-target="#modalEntregaPaquetes" data-id="{{ paquete.id_paquete }}">
+                            <i class="fas fa-truck"></i> Registrar Entrega
+                        </button>
+                    {% else %}
+                        <span class="status-badge status-badge-pago">
+                            <i class="fas fa-check-circle"></i> Entregado
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-table fa-4x mb-3" style="color: #94a3b8;"></i>
+                        <h4 class="text-muted">No hay paquetes registrados</h4>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CARDS para mobile - MEJORADAS CON ESTILO CÓDIGO 1 -->
+<div class="cards-container">
+    {% for paquete in paquetes %}
+    <div class="paquete-card">
+        <!-- HEADER VERDE - ESTILO CÓDIGO 1 -->
+        <div class="paquete-header">
+            <h5 class="paquete-title">Paquete {{ paquete.apartamento }}-{{ paquete.torre }}</h5>
+            <span class="paquete-badge {% if paquete.fecha_entrega %}entregado{% else %}pendiente{% endif %}">
+                {% if paquete.fecha_entrega %}Entregado{% else %}Pendiente{% endif %}
+            </span>
+        </div>
+        
+        <!-- CUERPO - ESTRUCTURA MEJORADA -->
+        <div class="paquete-body">
+            <div class="paquete-field">
+                <span class="paquete-label">Fecha Recepción:</span>
+                <span class="paquete-value">{{ paquete.fecha_recepcion|date:"d/m/Y H:i" }}</span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Vigilante Recepción:</span>
+                <span class="paquete-value">{{ paquete.cod_usuario_recepcion.nombres }} {{ paquete.cod_usuario_recepcion.apellidos }}</span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Vigilante Entrega:</span>
+                <span class="paquete-value">
+                    {% if paquete.cod_usuario_entrega %}
+                        {{ paquete.cod_usuario_entrega.nombres }} {{ paquete.cod_usuario_entrega.apellidos }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Recibido Por:</span>
+                <span class="paquete-value">{{ paquete.nombre_residente|default:"-" }}</span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Fecha Entrega:</span>
+                <span class="paquete-value">
+                    {% if paquete.fecha_entrega %}
+                        {{ paquete.fecha_entrega|date:"d/m/Y H:i" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Foto Cédula:</span>
+                <span class="paquete-value">
+                    {% if paquete.foto_cedula %}
+                        <a href="{{ paquete.foto_cedula.url }}" target="_blank" class="btn-modern" style="padding: 4px 8px;">
+                            <i class="fas fa-id-card"></i> Ver
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="paquete-field">
+                <span class="paquete-label">Descripción:</span>
+                <span class="paquete-value">{{ paquete.descripcion|default:"-" }}</span>
+            </div>
+        </div>
+        
+        <!-- ACCIONES -->
+        <div class="paquete-actions">
+            {% if not paquete.fecha_entrega %}
+                <button class="btn-modern registrar-entrega-btn" data-bs-toggle="modal" data-bs-target="#modalEntregaPaquetes" data-id="{{ paquete.id_paquete }}">
+                    <i class="fas fa-truck"></i> Registrar Entrega
+                </button>
+            {% else %}
+                <span class="status-badge status-badge-pago">
+                    <i class="fas fa-check-circle"></i> Entregado
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-box"></i>
+        <div>No hay paquetes registrados</div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-box"></i>
+        <div>No hay paquetes registrados.</div>
+    </div>
+{% endif %}

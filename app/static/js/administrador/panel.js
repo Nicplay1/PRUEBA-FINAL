@@ -6,6 +6,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function toggleSidebar() {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
+        
+        // MODIFICACIÓN 2: Ocultar/mostrar botón cuando el sidebar está activo
+        if (sidebar.classList.contains('active')) {
+            toggleBtn.classList.add('hidden');
+        } else {
+            toggleBtn.classList.remove('hidden');
+        }
     }
 
     toggleBtn.addEventListener('click', toggleSidebar);
@@ -23,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.innerWidth > 768) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
+            toggleBtn.classList.remove('hidden');
         }
     });
 

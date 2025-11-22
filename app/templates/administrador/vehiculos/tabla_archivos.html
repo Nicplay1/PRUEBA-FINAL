@@ -1,0 +1,33 @@
+<div class="table-container">
+    <table class="table align-middle">
+        <thead class="table-header-plain">
+            <tr>
+                <th>Tipo de Documento</th>
+                <th>Archivo</th>
+                <th>Fecha Subida</th>
+                <th>Fecha Vencimiento</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for archivo in archivos %}
+            <tr>
+                <td>{{ archivo.id_tipo_archivo.tipo_documento }}</td>
+                <td>
+                    <a href="{{ archivo.ruta_archivo.url }}" target="_blank" class="btn-file">
+                        <i class="fas fa-eye me-1"></i> Ver Archivo
+                    </a>
+                </td>
+                <td>{{ archivo.fecha_subida|date:"d/m/Y H:i" }}</td>
+                <td>{% if archivo.fecha_vencimiento %}{{ archivo.fecha_vencimiento|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-4">
+                    <i class="fas fa-file-alt fa-3x mb-3" style="color: #94a3b8;"></i>
+                    <h5 class="text-muted">No hay archivos subidos</h5>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
